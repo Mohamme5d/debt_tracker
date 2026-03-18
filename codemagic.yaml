@@ -1,0 +1,288 @@
+# =============================================================================
+# Codemagic CI/CD Configuration — Debt Tracker (com.mohamme5d.debttracker)
+# =============================================================================
+#
+# Two workflows:
+#   1. staging-workflow  — triggered by pushes to `staging` branch
+#      Publishes to: TestFlight (iOS) + Google Play Internal track (Android)
+#
+#   2. production-workflow — triggered by pushes to `main` branch
+#      Publishes to: App Store production (iOS) + Google Play Production track (Android)
+#
+# Required environment variables (set in Codemagic UI under each group):
+#
+#   Group: android_credentials
+#     CM_KEYSTORE              — Base64-encoded keystore file
+#     CM_KEYSTORE_PASSWORD     — Keystore password
+#     CM_KEY_ALIAS             — Key alias
+#     CM_KEY_PASSWORD          — Key password
+#
+#   Group: ios_credentials
+#     APP_STORE_CONNECT_KEY_IDENTIFIER  — App Store Connect API Key ID
+#     APP_STORE_CONNECT_ISSUER_ID       — App Store Connect Issuer ID
+#     APP_STORE_CONNECT_PRIVATE_KEY     — App Store Connect API private key (.p8 contents)
+#     CERTIFICATE_PRIVATE_KEY           — Private key for code signing certificate
+#
+#   Group: google_play_credentials
+#     GCLOUD_SERVICE_ACCOUNT_CREDENTIALS — JSON service account key for Google Play
+#
+# =============================================================================
+
+definitions:
+  # ---------------------------------------------------------------------------
+  # Shared environment configuration
+  # ---------------------------------------------------------------------------
+  environment: &environment
+    flutter: stable
+    xcode: latest
+    cocoapods: default
+    java: 17
+
+  # ---------------------------------------------------------------------------
+  # Shared build scripts (reused by both workflows via YAML anchors)
+  # ---------------------------------------------------------------------------
+  scripts:
+    # Decode the Android keystore from base64 environment variable
+    - &setup_android_keystore
+      name: Set up Android keystore
+      script: |
+        echo $CM_KEYSTORE | base64 --decode > $CM_BUILD_DIR/keystore.jks
+        cat <<EOF > $CM_BUILD_DIR/android/key.properties
+        storePassword=$CM_KEYSTORE_PASSWORD
+        keyPassword=$CM_KEY_PASSWORD
+        keyAlias=$CM_KEY_ALIAS
+        storeFile=$CM_BUILD_DIR/keystore.jks
+        EOF
+
+    # Install Flutter dependencies
+    - &flutter_pub_get
+      name: Install dependencies
+      script: flutter pub get
+
+    # Generate localization files
+    - &flutter_gen_l10n
+      name: Generate localizations
+      script: flutter gen-l10n
+
+    # Run build_runner for code generation (Riverpod, Isar, etc.)
+    - &build_runner
+      name: Run build_runner
+      script: dart run build_runner build --delete-conflicting-outputs
+
+    # Run all tests
+    - &flutter_test
+      name: Run tests
+      script: flutter test
+
+    # Build signed Android App Bundle
+    - &build_android
+      name: Build Android AAB
+      script: |
+        flutter build appbundle \
+          --release \
+          --build-number=$PROJECT_BUILD_NUMBER \
+          --build-name=$(grep 'version:' pubspec.yaml | sed 's/version: //' | sed 's/+.*//')
+
+    # Build signed iOS IPA
+    - &build_ios
+      name: Build iOS IPA
+      script: |
+        flutter build ipa \
+          --release \
+          --build-number=$PROJECT_BUILD_NUMBER \
+          --build-name=$(grep 'version:' pubspec.yaml | sed 's/version: //' | sed 's/+.*//' ) \
+          --export-options-plist=/Users/builder/export_options.plist
+
+  # ---------------------------------------------------------------------------
+  # Shared cache configuration
+  # ---------------------------------------------------------------------------
+  cache: &cache
+    cache_paths:
+      - $FLUTTER_ROOT/.pub-cache
+      - $HOME/.gradle/caches
+      - $CM_BUILD_DIR/.dart_tool
+      - $CM_BUILD_DIR/build
+
+  # ---------------------------------------------------------------------------
+  # Shared artifact paths
+  # ---------------------------------------------------------------------------
+  artifacts: &artifacts
+    - build/**/outputs/**/*.aab
+    - build/**/outputs/**/mapping.txt
+    - build/ios/ipa/*.ipa
+    - /tmp/xcodebuild_logs/*.log
+    - build/**/outputs/**/*.dSYM.zip
+    - flutter_drive.log
+
+  # ---------------------------------------------------------------------------
+  # Email notifications
+  # ---------------------------------------------------------------------------
+  notifications: &notifications
+    email:
+      recipients:
+        - mohammed.alsayani@gmail.com
+      notify:
+        success: true
+        failure: true
+
+
+# =============================================================================
+# WORKFLOWS
+# =============================================================================
+workflows:
+
+  # ---------------------------------------------------------------------------
+  # STAGING WORKFLOW
+  # ---------------------------------------------------------------------------
+  # Triggered on push to `staging` branch.
+  # Publishes: TestFlight (iOS beta) + Google Play Internal test track (Android)
+  # ---------------------------------------------------------------------------
+  staging-workflow:
+    name: Staging Build & Deploy
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+
+    environment:
+      <<: *environment
+      groups:
+        - android_credentials
+        - ios_credentials
+        - google_play_credentials
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.mohamme5d.debttracker
+
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: staging
+          include: true
+          source: true
+      cancel_previous_builds: true
+
+    cache: *cache
+
+    scripts:
+      - *setup_android_keystore
+      - *flutter_pub_get
+      - *flutter_gen_l10n
+      - *build_runner
+      - *flutter_test
+      - *build_android
+
+      # Set up iOS code signing via App Store Connect API
+      - name: Set up iOS code signing
+        script: |
+          app-store-connect fetch-signing-files "com.mohamme5d.debttracker" \
+            --type IOS_APP_STORE \
+            --create
+          keychain initialize
+          keychain add-certificates
+          xcode-project use-profiles
+
+      - *build_ios
+
+    artifacts: *artifacts
+
+    publishing:
+      # Publish Android AAB to Google Play Internal test track
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: internal
+        submit_as_draft: false
+
+      # Publish iOS IPA to TestFlight for beta testing
+      app_store_connect:
+        auth: integration
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        submit_to_testflight: true
+        beta_groups:
+          - Internal Testers
+
+      email:
+        recipients:
+          - mohammed.alsayani@gmail.com
+        notify:
+          success: true
+          failure: true
+
+  # ---------------------------------------------------------------------------
+  # PRODUCTION WORKFLOW
+  # ---------------------------------------------------------------------------
+  # Triggered on push to `main` branch.
+  # Publishes: App Store production (iOS) + Google Play Production track (Android)
+  # ---------------------------------------------------------------------------
+  production-workflow:
+    name: Production Build & Deploy
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+
+    environment:
+      <<: *environment
+      groups:
+        - android_credentials
+        - ios_credentials
+        - google_play_credentials
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.mohamme5d.debttracker
+
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+          source: true
+      cancel_previous_builds: false
+
+    cache: *cache
+
+    scripts:
+      - *setup_android_keystore
+      - *flutter_pub_get
+      - *flutter_gen_l10n
+      - *build_runner
+      - *flutter_test
+      - *build_android
+
+      # Set up iOS code signing via App Store Connect API
+      - name: Set up iOS code signing
+        script: |
+          app-store-connect fetch-signing-files "com.mohamme5d.debttracker" \
+            --type IOS_APP_STORE \
+            --create
+          keychain initialize
+          keychain add-certificates
+          xcode-project use-profiles
+
+      - *build_ios
+
+    artifacts: *artifacts
+
+    publishing:
+      # Publish Android AAB to Google Play Production track
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: production
+        submit_as_draft: false
+
+      # Submit iOS build to App Store for manual release
+      app_store_connect:
+        auth: integration
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        submit_to_testflight: false
+        submit_to_app_store: true
+        release_type: MANUAL
+
+      email:
+        recipients:
+          - mohammed.alsayani@gmail.com
+        notify:
+          success: true
+          failure: true
