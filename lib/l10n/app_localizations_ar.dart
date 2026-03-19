@@ -247,4 +247,215 @@ class AppLocalizationsAr extends AppLocalizations {
   String addNameManually(String name) {
     return 'إضافة \"$name\" يدوياً';
   }
+
+  @override
+  String get transactions => 'المعاملات';
+
+  @override
+  String get allTransactions => 'جميع المعاملات';
+
+  @override
+  String get goodStatus => 'أنت في وضع جيد';
+
+  @override
+  String get badStatus => 'لديك ديون متأخرة';
+
+  @override
+  String get debtVsLoan => 'الديون مقابل القروض';
+
+  @override
+  String get monthlyOverview => 'نظرة شهرية';
+
+  @override
+  String get balanceTrend => 'اتجاه الرصيد';
+
+  @override
+  String get thisMonth => 'هذا الشهر';
+
+  @override
+  String get all => 'الكل';
+
+  @override
+  String get security => 'الأمان';
+
+  @override
+  String get biometricAuth => 'المصادقة البيومترية';
+
+  @override
+  String get biometricSubtitle => 'استخدم بصمة الإصبع أو بصمة الوجه للفتح';
+
+  @override
+  String get passcode => 'رمز القفل';
+
+  @override
+  String get passcodeSubtitle => 'تعيين رمز PIN مكون من 6 أرقام';
+
+  @override
+  String get autoLock => 'القفل التلقائي';
+
+  @override
+  String get immediately => 'فوراً';
+
+  @override
+  String get after1Min => 'بعد دقيقة واحدة';
+
+  @override
+  String get after5Min => 'بعد 5 دقائق';
+
+  @override
+  String get backupSync => 'النسخ الاحتياطي والمزامنة';
+
+  @override
+  String get icloudBackup => 'نسخ احتياطي على iCloud';
+
+  @override
+  String get icloudSubtitle => 'حفظ البيانات على iCloud';
+
+  @override
+  String get googleDriveBackup => 'نسخ احتياطي على Google Drive';
+
+  @override
+  String get googleDriveSubtitle => 'حفظ البيانات على Google Drive';
+
+  @override
+  String get localBackup => 'نسخ احتياطي محلي';
+
+  @override
+  String get localBackupSubtitle => 'حفظ النسخة الاحتياطية على الجهاز';
+
+  @override
+  String lastBackup(String date) {
+    return 'آخر نسخ احتياطي: $date';
+  }
+
+  @override
+  String get neverBackedUp => 'لم يتم النسخ الاحتياطي بعد';
+
+  @override
+  String get dataExport => 'تصدير البيانات';
+
+  @override
+  String get exportPdf => 'تصدير إلى PDF';
+
+  @override
+  String get exportPdfSubtitle => 'إنشاء تقرير PDF';
+
+  @override
+  String get exportByPerson => 'تصدير حسب الشخص';
+
+  @override
+  String get exportByDate => 'تصدير حسب الفترة';
+
+  @override
+  String get app => 'التطبيق';
+
+  @override
+  String get theme => 'المظهر';
+
+  @override
+  String get lightTheme => 'فاتح';
+
+  @override
+  String get darkTheme => 'داكن';
+
+  @override
+  String get systemTheme => 'النظام';
+
+  @override
+  String get currency => 'العملة';
+
+  @override
+  String get appVersion => 'إصدار التطبيق';
+
+  @override
+  String get useBiometric => 'استخدم بصمة الإصبع';
+
+  @override
+  String get enterPasscode => 'أدخل الرمز السري';
+
+  @override
+  String get setPasscode => 'تعيين الرمز السري';
+
+  @override
+  String get confirmPasscode => 'تأكيد الرمز السري';
+
+  @override
+  String get wrongPasscode => 'رمز سري خاطئ';
+
+  @override
+  String get passcodeMismatch => 'الرموز السرية غير متطابقة';
+
+  @override
+  String get passcodeSet => 'تم تعيين الرمز السري بنجاح';
+
+  @override
+  String get passcodeRemoved => 'تم إزالة الرمز السري';
+
+  @override
+  String get biometricEnabled => 'تم تفعيل المصادقة البيومترية';
+
+  @override
+  String get biometricDisabled => 'تم تعطيل المصادقة البيومترية';
+
+  @override
+  String get biometricNotAvailable => 'المصادقة البيومترية غير متاحة';
+
+  @override
+  String get unlockApp => 'فتح التطبيق';
+
+  @override
+  String get backupSuccess => 'تم النسخ الاحتياطي بنجاح';
+
+  @override
+  String get backupFailed => 'فشل النسخ الاحتياطي';
+
+  @override
+  String get restoreSuccess => 'تم الاستعادة بنجاح';
+
+  @override
+  String get restoreFailed => 'فشل الاستعادة';
+
+  @override
+  String get exportAll => 'تصدير الكل';
+
+  @override
+  String get exportActiveOnly => 'تصدير النشطة فقط';
+
+  @override
+  String get filterByPerson => 'تصفية حسب الشخص';
+
+  @override
+  String get dateRange => 'نطاق التاريخ';
+
+  @override
+  String get generateReport => 'إنشاء التقرير';
+
+  @override
+  String get reportTitle => 'تقرير الديون والقروض';
+
+  @override
+  String get noData => 'لا توجد بيانات';
+
+  @override
+  String get greeting => 'مرحباً!';
+
+  @override
+  String get summary => 'الملخص';
+
+  @override
+  String get startDate => 'تاريخ البداية';
+
+  @override
+  String get endDate => 'تاريخ النهاية';
+
+  @override
+  String get status => 'الحالة';
+
+  @override
+  String get allPersons => 'جميع الأشخاص';
+
+  @override
+  String transactionsFor(String name) {
+    return 'معاملات $name';
+  }
 }

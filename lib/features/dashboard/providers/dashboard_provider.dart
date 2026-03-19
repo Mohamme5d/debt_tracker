@@ -15,31 +15,41 @@ class DashboardSummary {
   final double totalIOwe;
   final double totalOwedToMe;
   final List<PersonBalance> personBalances;
+  final List<DebtTransaction> allTransactions;
 
   const DashboardSummary({
     required this.totalIOwe,
     required this.totalOwedToMe,
     required this.personBalances,
+    required this.allTransactions,
   });
 }
 
 class PersonBalance {
   final Person person;
-  final double netBalance; // positive = they owe me, negative = I owe them
+  final double netBalance;
   final int activeCount;
+  final double totalAmount;
+  final double totalPaid;
+  final DateTime? lastTransactionDate;
 
   const PersonBalance({
     required this.person,
     required this.netBalance,
     required this.activeCount,
+    required this.totalAmount,
+    required this.totalPaid,
+    this.lastTransactionDate,
   });
+
+  double get progressRatio =>
+      totalAmount > 0 ? (totalPaid / totalAmount).clamp(0.0, 1.0) : 0.0;
 }
 
 @riverpod
 Stream<DashboardSummary> dashboardSummary(Ref ref) async* {
   final db = ref.watch(isarProvider);
 
-  // Emit initial value then watch for changes
   yield await _computeSummary(db);
 
   await for (final _ in db.debtTransactions.watchLazy()) {
@@ -48,19 +58,20 @@ Stream<DashboardSummary> dashboardSummary(Ref ref) async* {
 }
 
 Future<DashboardSummary> _computeSummary(Isar db) async {
-  final transactions = await db.debtTransactions
-      .filter()
-      .statusEqualTo(TransactionStatus.active)
-      .or()
-      .statusEqualTo(TransactionStatus.overdue)
-      .findAll();
+  final allTransactions = await db.debtTransactions.where().findAll();
+
+  final activeTransactions = allTransactions
+      .where((tx) =>
+          tx.status == TransactionStatus.active ||
+          tx.status == TransactionStatus.overdue)
+      .toList();
 
   double totalIOwe = 0;
   double totalOwedToMe = 0;
 
   final Map<int, _PersonAccumulator> personMap = {};
 
-  for (final tx in transactions) {
+  for (final tx in activeTransactions) {
     await tx.person.load();
     final person = tx.person.value;
     if (person == null) continue;
@@ -76,7 +87,6 @@ Future<DashboardSummary> _computeSummary(Isar db) async {
     }
 
     if (tx.type == TransactionType.debt) {
-      // I owe someone
       totalIOwe += remaining;
       personMap.putIfAbsent(
         person.id,
@@ -84,8 +94,13 @@ Future<DashboardSummary> _computeSummary(Isar db) async {
       );
       personMap[person.id]!.netBalance -= remaining;
       personMap[person.id]!.activeCount++;
+      personMap[person.id]!.totalAmount += tx.amount;
+      personMap[person.id]!.totalPaid += tx.amountPaid;
+      if (personMap[person.id]!.lastDate == null ||
+          tx.date.isAfter(personMap[person.id]!.lastDate!)) {
+        personMap[person.id]!.lastDate = tx.date;
+      }
     } else {
-      // Someone owes me (loan)
       totalOwedToMe += remaining;
       personMap.putIfAbsent(
         person.id,
@@ -93,6 +108,19 @@ Future<DashboardSummary> _computeSummary(Isar db) async {
       );
       personMap[person.id]!.netBalance += remaining;
       personMap[person.id]!.activeCount++;
+      personMap[person.id]!.totalAmount += tx.amount;
+      personMap[person.id]!.totalPaid += tx.amountPaid;
+      if (personMap[person.id]!.lastDate == null ||
+          tx.date.isAfter(personMap[person.id]!.lastDate!)) {
+        personMap[person.id]!.lastDate = tx.date;
+      }
+    }
+  }
+
+  // Load person links for all transactions
+  for (final tx in allTransactions) {
+    if (tx.person.value == null) {
+      await tx.person.load();
     }
   }
 
@@ -102,6 +130,9 @@ Future<DashboardSummary> _computeSummary(Isar db) async {
           person: acc.person,
           netBalance: acc.netBalance,
           activeCount: acc.activeCount,
+          totalAmount: acc.totalAmount,
+          totalPaid: acc.totalPaid,
+          lastTransactionDate: acc.lastDate,
         ),
       )
       .toList()
@@ -111,6 +142,7 @@ Future<DashboardSummary> _computeSummary(Isar db) async {
     totalIOwe: totalIOwe,
     totalOwedToMe: totalOwedToMe,
     personBalances: personBalances,
+    allTransactions: allTransactions,
   );
 }
 
@@ -118,6 +150,9 @@ class _PersonAccumulator {
   final Person person;
   double netBalance = 0;
   int activeCount = 0;
+  double totalAmount = 0;
+  double totalPaid = 0;
+  DateTime? lastDate;
 
   _PersonAccumulator({required this.person});
 }

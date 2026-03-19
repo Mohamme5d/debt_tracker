@@ -249,4 +249,215 @@ class AppLocalizationsEn extends AppLocalizations {
   String addNameManually(String name) {
     return 'Add \"$name\" manually';
   }
+
+  @override
+  String get transactions => 'Transactions';
+
+  @override
+  String get allTransactions => 'All Transactions';
+
+  @override
+  String get goodStatus => 'You\'re in good shape';
+
+  @override
+  String get badStatus => 'You have outstanding debts';
+
+  @override
+  String get debtVsLoan => 'Debt vs Loan';
+
+  @override
+  String get monthlyOverview => 'Monthly Overview';
+
+  @override
+  String get balanceTrend => 'Balance Trend';
+
+  @override
+  String get thisMonth => 'This Month';
+
+  @override
+  String get all => 'All';
+
+  @override
+  String get security => 'Security';
+
+  @override
+  String get biometricAuth => 'Biometric Authentication';
+
+  @override
+  String get biometricSubtitle => 'Use fingerprint or Face ID to unlock';
+
+  @override
+  String get passcode => 'Passcode Lock';
+
+  @override
+  String get passcodeSubtitle => 'Set a 6-digit PIN code';
+
+  @override
+  String get autoLock => 'Auto-Lock';
+
+  @override
+  String get immediately => 'Immediately';
+
+  @override
+  String get after1Min => 'After 1 minute';
+
+  @override
+  String get after5Min => 'After 5 minutes';
+
+  @override
+  String get backupSync => 'Backup & Sync';
+
+  @override
+  String get icloudBackup => 'iCloud Backup';
+
+  @override
+  String get icloudSubtitle => 'Backup data to iCloud';
+
+  @override
+  String get googleDriveBackup => 'Google Drive Backup';
+
+  @override
+  String get googleDriveSubtitle => 'Backup data to Google Drive';
+
+  @override
+  String get localBackup => 'Local Backup';
+
+  @override
+  String get localBackupSubtitle => 'Save backup to device';
+
+  @override
+  String lastBackup(String date) {
+    return 'Last backup: $date';
+  }
+
+  @override
+  String get neverBackedUp => 'Never backed up';
+
+  @override
+  String get dataExport => 'Data Export';
+
+  @override
+  String get exportPdf => 'Export to PDF';
+
+  @override
+  String get exportPdfSubtitle => 'Generate PDF report';
+
+  @override
+  String get exportByPerson => 'Export by Person';
+
+  @override
+  String get exportByDate => 'Export by Date Range';
+
+  @override
+  String get app => 'App';
+
+  @override
+  String get theme => 'Theme';
+
+  @override
+  String get lightTheme => 'Light';
+
+  @override
+  String get darkTheme => 'Dark';
+
+  @override
+  String get systemTheme => 'System';
+
+  @override
+  String get currency => 'Currency';
+
+  @override
+  String get appVersion => 'App Version';
+
+  @override
+  String get useBiometric => 'Use Biometric';
+
+  @override
+  String get enterPasscode => 'Enter Passcode';
+
+  @override
+  String get setPasscode => 'Set Passcode';
+
+  @override
+  String get confirmPasscode => 'Confirm Passcode';
+
+  @override
+  String get wrongPasscode => 'Wrong Passcode';
+
+  @override
+  String get passcodeMismatch => 'Passcodes do not match';
+
+  @override
+  String get passcodeSet => 'Passcode set successfully';
+
+  @override
+  String get passcodeRemoved => 'Passcode removed';
+
+  @override
+  String get biometricEnabled => 'Biometric authentication enabled';
+
+  @override
+  String get biometricDisabled => 'Biometric authentication disabled';
+
+  @override
+  String get biometricNotAvailable => 'Biometric authentication not available';
+
+  @override
+  String get unlockApp => 'Unlock App';
+
+  @override
+  String get backupSuccess => 'Backup completed successfully';
+
+  @override
+  String get backupFailed => 'Backup failed';
+
+  @override
+  String get restoreSuccess => 'Restore completed successfully';
+
+  @override
+  String get restoreFailed => 'Restore failed';
+
+  @override
+  String get exportAll => 'Export All';
+
+  @override
+  String get exportActiveOnly => 'Export Active Only';
+
+  @override
+  String get filterByPerson => 'Filter by Person';
+
+  @override
+  String get dateRange => 'Date Range';
+
+  @override
+  String get generateReport => 'Generate Report';
+
+  @override
+  String get reportTitle => 'Debts & Loans Report';
+
+  @override
+  String get noData => 'No data available';
+
+  @override
+  String get greeting => 'Hello!';
+
+  @override
+  String get summary => 'Summary';
+
+  @override
+  String get startDate => 'Start Date';
+
+  @override
+  String get endDate => 'End Date';
+
+  @override
+  String get status => 'Status';
+
+  @override
+  String get allPersons => 'All Persons';
+
+  @override
+  String transactionsFor(String name) {
+    return 'Transactions for $name';
+  }
 }

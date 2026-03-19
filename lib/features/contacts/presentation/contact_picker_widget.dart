@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart' as fc;
-import 'package:debt_tracker/l10n/app_localizations.dart';
+import 'package:raseed/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme.dart';
@@ -43,7 +43,6 @@ class _ContactPickerWidgetState extends ConsumerState<ContactPickerWidget>
   Widget build(BuildContext context) {
     final phoneContactsAsync = ref.watch(phoneContactsProvider);
     final savedPersonsAsync = ref.watch(savedPersonsProvider);
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
 
     return Column(
@@ -56,12 +55,12 @@ class _ContactPickerWidgetState extends ConsumerState<ContactPickerWidget>
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey[300],
+              color: AppTheme.borderDark,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
         ),
-        // Animated search field
+        // Search field
         Padding(
           padding: const EdgeInsets.all(16),
           child: TweenAnimationBuilder<double>(
@@ -79,12 +78,15 @@ class _ContactPickerWidgetState extends ConsumerState<ContactPickerWidget>
             },
             child: TextField(
               controller: _searchController,
+              style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 hintText: l10n.searchOrType,
-                prefixIcon: const Icon(Icons.search_rounded),
+                prefixIcon: Icon(Icons.search_rounded,
+                    color: Colors.white.withOpacity(0.4)),
                 suffixIcon: _query.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear_rounded),
+                        icon: Icon(Icons.clear_rounded,
+                            color: Colors.white.withOpacity(0.4)),
                         onPressed: () {
                           _searchController.clear();
                           setState(() => _query = '');
@@ -107,15 +109,18 @@ class _ContactPickerWidgetState extends ConsumerState<ContactPickerWidget>
                     leading: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryColor.withOpacity(0.1),
+                        color: AppTheme.primaryColor.withOpacity(0.15),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.person_add_rounded,
                         color: AppTheme.primaryColor,
                       ),
                     ),
-                    title: Text(l10n.addNameManually(_query)),
+                    title: Text(
+                      l10n.addNameManually(_query),
+                      style: const TextStyle(color: Colors.white),
+                    ),
                     onTap: () => _addManually(_query),
                   ),
                 ),
@@ -140,9 +145,10 @@ class _ContactPickerWidgetState extends ConsumerState<ContactPickerWidget>
                               16, 8, 16, 8),
                           child: Text(
                             l10n.recent,
-                            style: theme.textTheme.labelLarge?.copyWith(
+                            style: const TextStyle(
                               color: AppTheme.primaryColor,
                               fontWeight: FontWeight.w600,
+                              fontSize: 14,
                             ),
                           ),
                         ),
@@ -152,9 +158,19 @@ class _ContactPickerWidgetState extends ConsumerState<ContactPickerWidget>
                                 child: ListTile(
                                   leading: _GradientAvatar(
                                       name: entry.value.name),
-                                  title: Text(entry.value.name),
+                                  title: Text(
+                                    entry.value.name,
+                                    style: const TextStyle(
+                                        color: Colors.white),
+                                  ),
                                   subtitle: entry.value.phoneNumber != null
-                                      ? Text(entry.value.phoneNumber!)
+                                      ? Text(
+                                          entry.value.phoneNumber!,
+                                          style: TextStyle(
+                                            color: Colors.white
+                                                .withOpacity(0.4),
+                                          ),
+                                        )
                                       : null,
                                   onTap: () =>
                                       _selectPerson(entry.value),
@@ -191,9 +207,10 @@ class _ContactPickerWidgetState extends ConsumerState<ContactPickerWidget>
                             16, 8, 16, 8),
                         child: Text(
                           l10n.phoneContacts,
-                          style: theme.textTheme.labelLarge?.copyWith(
+                          style: const TextStyle(
                             color: AppTheme.primaryColor,
                             fontWeight: FontWeight.w600,
+                            fontSize: 14,
                           ),
                         ),
                       ),
@@ -203,10 +220,19 @@ class _ContactPickerWidgetState extends ConsumerState<ContactPickerWidget>
                               child: ListTile(
                                 leading: _GradientAvatar(
                                     name: entry.value.displayName),
-                                title: Text(entry.value.displayName),
+                                title: Text(
+                                  entry.value.displayName,
+                                  style: const TextStyle(
+                                      color: Colors.white),
+                                ),
                                 subtitle: entry.value.phones.isNotEmpty
                                     ? Text(
-                                        entry.value.phones.first.number)
+                                        entry.value.phones.first.number,
+                                        style: TextStyle(
+                                          color: Colors.white
+                                              .withOpacity(0.4),
+                                        ),
+                                      )
                                     : null,
                                 onTap: () =>
                                     _selectContact(entry.value),
@@ -219,14 +245,16 @@ class _ContactPickerWidgetState extends ConsumerState<ContactPickerWidget>
                 loading: () => const Center(
                   child: Padding(
                     padding: EdgeInsets.all(32),
-                    child: CircularProgressIndicator(),
+                    child: CircularProgressIndicator(
+                      color: AppTheme.primaryColor,
+                    ),
                   ),
                 ),
                 error: (e, _) => Padding(
                   padding: const EdgeInsets.all(16),
                   child: Text(
                     l10n.couldNotLoadContacts,
-                    style: TextStyle(color: theme.colorScheme.error),
+                    style: const TextStyle(color: AppTheme.debtColor),
                   ),
                 ),
               ),
@@ -295,7 +323,7 @@ class _ContactPickerWidgetState extends ConsumerState<ContactPickerWidget>
   }
 }
 
-/// Gradient avatar used in contact picker
+/// Gradient avatar used in contact picker — dark theme
 class _GradientAvatar extends StatelessWidget {
   const _GradientAvatar({required this.name});
 

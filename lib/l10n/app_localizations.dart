@@ -571,6 +571,420 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add \"{name}\" manually'**
   String addNameManually(String name);
+
+  /// No description provided for @transactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions'**
+  String get transactions;
+
+  /// No description provided for @allTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'All Transactions'**
+  String get allTransactions;
+
+  /// No description provided for @goodStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re in good shape'**
+  String get goodStatus;
+
+  /// No description provided for @badStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'You have outstanding debts'**
+  String get badStatus;
+
+  /// No description provided for @debtVsLoan.
+  ///
+  /// In en, this message translates to:
+  /// **'Debt vs Loan'**
+  String get debtVsLoan;
+
+  /// No description provided for @monthlyOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Overview'**
+  String get monthlyOverview;
+
+  /// No description provided for @balanceTrend.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance Trend'**
+  String get balanceTrend;
+
+  /// No description provided for @thisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This Month'**
+  String get thisMonth;
+
+  /// No description provided for @all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get all;
+
+  /// No description provided for @security.
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get security;
+
+  /// No description provided for @biometricAuth.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric Authentication'**
+  String get biometricAuth;
+
+  /// No description provided for @biometricSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use fingerprint or Face ID to unlock'**
+  String get biometricSubtitle;
+
+  /// No description provided for @passcode.
+  ///
+  /// In en, this message translates to:
+  /// **'Passcode Lock'**
+  String get passcode;
+
+  /// No description provided for @passcodeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a 6-digit PIN code'**
+  String get passcodeSubtitle;
+
+  /// No description provided for @autoLock.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-Lock'**
+  String get autoLock;
+
+  /// No description provided for @immediately.
+  ///
+  /// In en, this message translates to:
+  /// **'Immediately'**
+  String get immediately;
+
+  /// No description provided for @after1Min.
+  ///
+  /// In en, this message translates to:
+  /// **'After 1 minute'**
+  String get after1Min;
+
+  /// No description provided for @after5Min.
+  ///
+  /// In en, this message translates to:
+  /// **'After 5 minutes'**
+  String get after5Min;
+
+  /// No description provided for @backupSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup & Sync'**
+  String get backupSync;
+
+  /// No description provided for @icloudBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'iCloud Backup'**
+  String get icloudBackup;
+
+  /// No description provided for @icloudSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup data to iCloud'**
+  String get icloudSubtitle;
+
+  /// No description provided for @googleDriveBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Drive Backup'**
+  String get googleDriveBackup;
+
+  /// No description provided for @googleDriveSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup data to Google Drive'**
+  String get googleDriveSubtitle;
+
+  /// No description provided for @localBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Local Backup'**
+  String get localBackup;
+
+  /// No description provided for @localBackupSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save backup to device'**
+  String get localBackupSubtitle;
+
+  /// No description provided for @lastBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Last backup: {date}'**
+  String lastBackup(String date);
+
+  /// No description provided for @neverBackedUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Never backed up'**
+  String get neverBackedUp;
+
+  /// No description provided for @dataExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Export'**
+  String get dataExport;
+
+  /// No description provided for @exportPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Export to PDF'**
+  String get exportPdf;
+
+  /// No description provided for @exportPdfSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate PDF report'**
+  String get exportPdfSubtitle;
+
+  /// No description provided for @exportByPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Export by Person'**
+  String get exportByPerson;
+
+  /// No description provided for @exportByDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Export by Date Range'**
+  String get exportByDate;
+
+  /// No description provided for @app.
+  ///
+  /// In en, this message translates to:
+  /// **'App'**
+  String get app;
+
+  /// No description provided for @theme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get theme;
+
+  /// No description provided for @lightTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get lightTheme;
+
+  /// No description provided for @darkTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get darkTheme;
+
+  /// No description provided for @systemTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get systemTheme;
+
+  /// No description provided for @currency.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get currency;
+
+  /// No description provided for @appVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'App Version'**
+  String get appVersion;
+
+  /// No description provided for @useBiometric.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Biometric'**
+  String get useBiometric;
+
+  /// No description provided for @enterPasscode.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Passcode'**
+  String get enterPasscode;
+
+  /// No description provided for @setPasscode.
+  ///
+  /// In en, this message translates to:
+  /// **'Set Passcode'**
+  String get setPasscode;
+
+  /// No description provided for @confirmPasscode.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Passcode'**
+  String get confirmPasscode;
+
+  /// No description provided for @wrongPasscode.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong Passcode'**
+  String get wrongPasscode;
+
+  /// No description provided for @passcodeMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passcodes do not match'**
+  String get passcodeMismatch;
+
+  /// No description provided for @passcodeSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Passcode set successfully'**
+  String get passcodeSet;
+
+  /// No description provided for @passcodeRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Passcode removed'**
+  String get passcodeRemoved;
+
+  /// No description provided for @biometricEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric authentication enabled'**
+  String get biometricEnabled;
+
+  /// No description provided for @biometricDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric authentication disabled'**
+  String get biometricDisabled;
+
+  /// No description provided for @biometricNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric authentication not available'**
+  String get biometricNotAvailable;
+
+  /// No description provided for @unlockApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock App'**
+  String get unlockApp;
+
+  /// No description provided for @backupSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup completed successfully'**
+  String get backupSuccess;
+
+  /// No description provided for @backupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup failed'**
+  String get backupFailed;
+
+  /// No description provided for @restoreSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore completed successfully'**
+  String get restoreSuccess;
+
+  /// No description provided for @restoreFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore failed'**
+  String get restoreFailed;
+
+  /// No description provided for @exportAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Export All'**
+  String get exportAll;
+
+  /// No description provided for @exportActiveOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Export Active Only'**
+  String get exportActiveOnly;
+
+  /// No description provided for @filterByPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by Person'**
+  String get filterByPerson;
+
+  /// No description provided for @dateRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Date Range'**
+  String get dateRange;
+
+  /// No description provided for @generateReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate Report'**
+  String get generateReport;
+
+  /// No description provided for @reportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Debts & Loans Report'**
+  String get reportTitle;
+
+  /// No description provided for @noData.
+  ///
+  /// In en, this message translates to:
+  /// **'No data available'**
+  String get noData;
+
+  /// No description provided for @greeting.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello!'**
+  String get greeting;
+
+  /// No description provided for @summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary'**
+  String get summary;
+
+  /// No description provided for @startDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Date'**
+  String get startDate;
+
+  /// No description provided for @endDate.
+  ///
+  /// In en, this message translates to:
+  /// **'End Date'**
+  String get endDate;
+
+  /// No description provided for @status.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get status;
+
+  /// No description provided for @allPersons.
+  ///
+  /// In en, this message translates to:
+  /// **'All Persons'**
+  String get allPersons;
+
+  /// No description provided for @transactionsFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions for {name}'**
+  String transactionsFor(String name);
 }
 
 class _AppLocalizationsDelegate

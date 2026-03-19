@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:debt_tracker/l10n/app_localizations.dart';
+import 'package:raseed/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../app/theme.dart';
-import '../../../core/providers/locale_provider.dart';
+import '../../../shared/widgets/gradient_card.dart';
+import '../../../shared/widgets/person_avatar.dart';
 import '../providers/dashboard_provider.dart';
-import 'widgets/person_balance_card.dart';
+import 'widgets/balance_line_chart.dart';
+import 'widgets/debt_loan_chart.dart';
+import 'widgets/monthly_bar_chart.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -21,41 +24,24 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   late final AnimationController _summaryAnimController;
   late final AnimationController _listAnimController;
   late final AnimationController _fabAnimController;
-  late final AnimationController _langToggleController;
-  final ScrollController _scrollController = ScrollController();
-  double _scrollOffset = 0;
+  int _chartTabIndex = 0;
 
   @override
   void initState() {
     super.initState();
-
     _summaryAnimController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
-
     _listAnimController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     );
-
     _fabAnimController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
     );
 
-    _langToggleController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 400),
-    );
-
-    _scrollController.addListener(() {
-      setState(() {
-        _scrollOffset = _scrollController.offset;
-      });
-    });
-
-    // Start entrance animations with stagger
     Future.delayed(const Duration(milliseconds: 100), () {
       if (mounted) _summaryAnimController.forward();
     });
@@ -72,106 +58,49 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     _summaryAnimController.dispose();
     _listAnimController.dispose();
     _fabAnimController.dispose();
-    _langToggleController.dispose();
-    _scrollController.dispose();
     super.dispose();
   }
 
-  void _onLanguageToggle() {
-    _langToggleController.forward(from: 0);
-    ref.read(localeNotifierProvider.notifier).toggle();
-  }
+  static final _formatter = NumberFormat('#,##0.00');
 
   @override
   Widget build(BuildContext context) {
     final summaryAsync = ref.watch(dashboardSummaryProvider);
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final locale = ref.watch(localeNotifierProvider);
-    final isArabic = locale.languageCode == 'ar';
-
-    final appBarOpacity = (_scrollOffset / 100).clamp(0.0, 1.0);
 
     return Scaffold(
-      backgroundColor: AppTheme.surfaceColor,
+      backgroundColor: AppTheme.backgroundDark,
       body: CustomScrollView(
-        controller: _scrollController,
         physics: const BouncingScrollPhysics(
           parent: AlwaysScrollableScrollPhysics(),
         ),
         slivers: [
-          // Animated app bar with gradient
           SliverAppBar(
-            expandedHeight: 120,
+            expandedHeight: 80,
             floating: true,
             pinned: true,
-            elevation: 0,
-            backgroundColor:
-                theme.colorScheme.surface.withOpacity(appBarOpacity),
+            backgroundColor: AppTheme.backgroundDark,
             flexibleSpace: FlexibleSpaceBar(
               titlePadding:
                   const EdgeInsetsDirectional.only(start: 20, bottom: 16),
               title: Text(
-                l10n.appTitle,
-                style: TextStyle(
-                  color: theme.colorScheme.onSurface,
+                l10n.greeting,
+                style: const TextStyle(
+                  color: Colors.white,
                   fontWeight: FontWeight.w700,
                   fontSize: 22,
                 ),
               ),
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: AlignmentDirectional.topStart,
-                    end: AlignmentDirectional.bottomEnd,
-                    colors: [
-                      AppTheme.primaryColor.withOpacity(0.05),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
             ),
-            actions: [
-              // Language toggle with rotation animation
-              RotationTransition(
-                turns: Tween(begin: 0.0, end: 1.0)
-                    .animate(_langToggleController),
-                child: IconButton(
-                  icon: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    transitionBuilder: (child, animation) {
-                      return ScaleTransition(scale: animation, child: child);
-                    },
-                    child: Text(
-                      isArabic ? 'EN' : '\u0639',
-                      key: ValueKey(isArabic),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.primaryColor,
-                      ),
-                    ),
-                  ),
-                  onPressed: _onLanguageToggle,
-                  tooltip: l10n.language,
-                ),
-              ),
-              // Settings button
-              IconButton(
-                icon: const Icon(Icons.settings_outlined),
-                onPressed: () => context.push('/settings'),
-              ),
-              const SizedBox(width: 8),
-            ],
           ),
-
-          // Content
           SliverToBoxAdapter(
             child: summaryAsync.when(
-              data: (summary) => _buildContent(summary, l10n, theme),
-              loading: () => _buildLoadingState(),
-              error: (error, stack) => _buildErrorState(error, theme, l10n),
+              data: (summary) => _buildContent(summary, l10n),
+              loading: () => const Padding(
+                padding: EdgeInsets.symmetric(vertical: 100),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (error, _) => _buildErrorState(error, l10n),
             ),
           ),
         ],
@@ -190,193 +119,93 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     );
   }
 
-  Widget _buildContent(
-    DashboardSummary summary,
-    AppLocalizations l10n,
-    ThemeData theme,
-  ) {
+  Widget _buildContent(DashboardSummary summary, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Summary cards
+        // Summary Row
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
           child: Row(
             children: [
-              Expanded(
-                child: _AnimatedSummaryCard(
-                  title: l10n.iOwe,
-                  amount: summary.totalIOwe,
-                  color: AppTheme.debtColor,
-                  icon: Icons.arrow_upward_rounded,
-                  controller: _summaryAnimController,
-                  beginInterval: 0.0,
-                ),
-              ),
+              Expanded(child: _buildSummaryCard(
+                title: l10n.iOwe,
+                amount: summary.totalIOwe,
+                color: AppTheme.debtColor,
+                icon: Icons.arrow_upward_rounded,
+                delay: 0.0,
+              )),
               const SizedBox(width: 12),
-              Expanded(
-                child: _AnimatedSummaryCard(
-                  title: l10n.owedToMe,
-                  amount: summary.totalOwedToMe,
-                  color: AppTheme.loanColor,
-                  icon: Icons.arrow_downward_rounded,
-                  controller: _summaryAnimController,
-                  beginInterval: 0.15,
-                ),
-              ),
+              Expanded(child: _buildSummaryCard(
+                title: l10n.owedToMe,
+                amount: summary.totalOwedToMe,
+                color: AppTheme.loanColor,
+                icon: Icons.arrow_downward_rounded,
+                delay: 0.15,
+              )),
             ],
           ),
         ),
 
-        // Net balance card
-        _AnimatedNetBalance(
-          totalIOwe: summary.totalIOwe,
-          totalOwedToMe: summary.totalOwedToMe,
-          controller: _summaryAnimController,
-          l10n: l10n,
-        ),
+        // Net balance pill
+        _buildNetBalancePill(summary, l10n),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
 
-        if (summary.personBalances.isEmpty)
-          _buildEmptyState(theme, l10n)
-        else ...[
-          // People header
+        // Charts Section
+        _buildChartsSection(summary, l10n),
+
+        const SizedBox(height: 20),
+
+        // Person List Header
+        if (summary.personBalances.isNotEmpty) ...[
           FadeTransition(
             opacity: _listAnimController,
             child: Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 8),
               child: Text(
                 l10n.people,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: theme.colorScheme.outline,
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.5),
                   fontWeight: FontWeight.w600,
+                  fontSize: 14,
                   letterSpacing: 0.5,
                 ),
               ),
             ),
           ),
-
-          // Person cards with staggered animation
           ...List.generate(
             summary.personBalances.length,
-            (index) {
-              final pb = summary.personBalances[index];
-              return PersonBalanceCard(
-                personBalance: pb,
-                index: index,
-                controller: _listAnimController,
-                onTap: () =>
-                    context.push('/add-transaction?personId=${pb.person.id}'),
-              );
-            },
+            (index) => _buildPersonCard(summary.personBalances[index], index),
           ),
-        ],
+        ] else
+          _buildEmptyState(l10n),
 
         const SizedBox(height: 100),
       ],
     );
   }
 
-  Widget _buildEmptyState(ThemeData theme, AppLocalizations l10n) {
-    return FadeTransition(
-      opacity: _listAnimController,
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 60),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _FloatingEmptyIcon(),
-              const SizedBox(height: 24),
-              Text(
-                l10n.noActiveDebts,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: theme.colorScheme.outline,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                l10n.tapToAdd,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.outline.withOpacity(0.7),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLoadingState() {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 100),
-        child: CircularProgressIndicator(),
-      ),
-    );
-  }
-
-  Widget _buildErrorState(
-    Object error,
-    ThemeData theme,
-    AppLocalizations l10n,
-  ) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 60),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),
-            const SizedBox(height: 16),
-            Text(l10n.errorLoading, style: theme.textTheme.titleMedium),
-            const SizedBox(height: 8),
-            Text(error.toString(), style: theme.textTheme.bodySmall),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Animated summary card with slide + fade + animated counter
-class _AnimatedSummaryCard extends StatelessWidget {
-  const _AnimatedSummaryCard({
-    required this.title,
-    required this.amount,
-    required this.color,
-    required this.icon,
-    required this.controller,
-    required this.beginInterval,
-  });
-
-  final String title;
-  final double amount;
-  final Color color;
-  final IconData icon;
-  final AnimationController controller;
-  final double beginInterval;
-
-  static final _formatter = NumberFormat('#,##0.00');
-
-  @override
-  Widget build(BuildContext context) {
-    final endInterval = (beginInterval + 0.6).clamp(0.0, 1.0);
+  Widget _buildSummaryCard({
+    required String title,
+    required double amount,
+    required Color color,
+    required IconData icon,
+    required double delay,
+  }) {
+    final endInterval = (delay + 0.6).clamp(0.0, 1.0);
 
     final slideAnim = Tween<Offset>(
       begin: const Offset(0, 0.4),
       end: Offset.zero,
     ).animate(CurvedAnimation(
-      parent: controller,
-      curve: Interval(beginInterval, endInterval, curve: Curves.easeOutCubic),
+      parent: _summaryAnimController,
+      curve: Interval(delay, endInterval, curve: Curves.easeOutCubic),
     ));
 
     final fadeAnim = CurvedAnimation(
-      parent: controller,
-      curve: Interval(beginInterval, (beginInterval + 0.5).clamp(0.0, 1.0),
+      parent: _summaryAnimController,
+      curve: Interval(delay, (delay + 0.5).clamp(0.0, 1.0),
           curve: Curves.easeOut),
     );
 
@@ -384,26 +213,30 @@ class _AnimatedSummaryCard extends StatelessWidget {
       opacity: fadeAnim,
       child: SlideTransition(
         position: slideAnim,
-        child: Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: AlignmentDirectional.topStart,
-              end: AlignmentDirectional.bottomEnd,
-              colors: [
-                color.withOpacity(0.12),
-                color.withOpacity(0.04),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: color.withOpacity(0.15), width: 1.5),
+        child: GradientCard(
+          gradient: LinearGradient(
+            begin: AlignmentDirectional.topStart,
+            end: AlignmentDirectional.bottomEnd,
+            colors: [
+              color.withOpacity(0.15),
+              AppTheme.surfaceDark2,
+            ],
           ),
+          borderColor: color.withOpacity(0.2),
+          padding: const EdgeInsets.all(18),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  _PulsingIcon(icon: icon, color: color),
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(icon, color: color, size: 16),
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     title,
@@ -424,7 +257,7 @@ class _AnimatedSummaryCard extends StatelessWidget {
                   return Text(
                     _formatter.format(val),
                     style: TextStyle(
-                      fontSize: 26,
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
                       color: color,
                     ),
@@ -437,80 +270,15 @@ class _AnimatedSummaryCard extends StatelessWidget {
       ),
     );
   }
-}
 
-/// Pulsing icon widget
-class _PulsingIcon extends StatefulWidget {
-  const _PulsingIcon({required this.icon, required this.color});
-
-  final IconData icon;
-  final Color color;
-
-  @override
-  State<_PulsingIcon> createState() => _PulsingIconState();
-}
-
-class _PulsingIconState extends State<_PulsingIcon>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2000),
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ScaleTransition(
-      scale: Tween(begin: 0.9, end: 1.1).animate(
-        CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          color: widget.color.withOpacity(0.15),
-          shape: BoxShape.circle,
-        ),
-        child: Icon(widget.icon, color: widget.color, size: 16),
-      ),
-    );
-  }
-}
-
-/// Animated net balance indicator
-class _AnimatedNetBalance extends StatelessWidget {
-  const _AnimatedNetBalance({
-    required this.totalIOwe,
-    required this.totalOwedToMe,
-    required this.controller,
-    required this.l10n,
-  });
-
-  final double totalIOwe;
-  final double totalOwedToMe;
-  final AnimationController controller;
-  final AppLocalizations l10n;
-
-  static final _formatter = NumberFormat('#,##0.00');
-
-  @override
-  Widget build(BuildContext context) {
-    final net = totalOwedToMe - totalIOwe;
+  Widget _buildNetBalancePill(DashboardSummary summary, AppLocalizations l10n) {
+    final net = summary.totalOwedToMe - summary.totalIOwe;
     final isPositive = net >= 0;
     final color = isPositive ? AppTheme.loanColor : AppTheme.debtColor;
+    final statusText = isPositive ? l10n.goodStatus : l10n.badStatus;
 
     final fadeAnim = CurvedAnimation(
-      parent: controller,
+      parent: _summaryAnimController,
       curve: const Interval(0.3, 0.8, curve: Curves.easeOut),
     );
 
@@ -521,46 +289,46 @@ class _AnimatedNetBalance extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.06),
+            color: color.withOpacity(0.08),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: color.withOpacity(0.1)),
+            border: Border.all(color: color.withOpacity(0.15)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                l10n.netBalance,
-                style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey[600],
-                  fontSize: 14,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    isPositive
+                        ? Icons.check_circle_rounded
+                        : Icons.warning_rounded,
+                    color: color,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    statusText,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: color,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
               ),
               TweenAnimationBuilder<double>(
                 tween: Tween(begin: 0, end: net.abs()),
                 duration: const Duration(milliseconds: 1400),
                 curve: Curves.easeOutCubic,
                 builder: (context, val, _) {
-                  return Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        isPositive
-                            ? Icons.trending_up_rounded
-                            : Icons.trending_down_rounded,
-                        color: color,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        _formatter.format(val),
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: color,
-                        ),
-                      ),
-                    ],
+                  return Text(
+                    _formatter.format(val),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: color,
+                    ),
                   );
                 },
               ),
@@ -570,69 +338,346 @@ class _AnimatedNetBalance extends StatelessWidget {
       ),
     );
   }
-}
 
-/// Floating empty state icon with gentle bounce animation
-class _FloatingEmptyIcon extends StatefulWidget {
-  @override
-  State<_FloatingEmptyIcon> createState() => _FloatingEmptyIconState();
-}
+  Widget _buildChartsSection(DashboardSummary summary, AppLocalizations l10n) {
+    final tabs = [l10n.debtVsLoan, l10n.monthlyOverview, l10n.balanceTrend];
 
-class _FloatingEmptyIconState extends State<_FloatingEmptyIcon>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _floatAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 3000),
-    )..repeat(reverse: true);
-
-    _floatAnimation = Tween<double>(begin: 0, end: -8).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    return FadeTransition(
+      opacity: CurvedAnimation(
+        parent: _listAnimController,
+        curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: GradientCard(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Tab bar
+              SizedBox(
+                height: 36,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: tabs.length,
+                  itemBuilder: (context, index) {
+                    final selected = _chartTabIndex == index;
+                    return GestureDetector(
+                      onTap: () => setState(() => _chartTabIndex = index),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        margin: const EdgeInsetsDirectional.only(end: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: selected
+                              ? AppTheme.primaryColor.withOpacity(0.2)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: selected
+                                ? AppTheme.primaryColor
+                                : AppTheme.borderDark,
+                          ),
+                        ),
+                        child: Text(
+                          tabs[index],
+                          style: TextStyle(
+                            color: selected
+                                ? AppTheme.primaryColor
+                                : Colors.white.withOpacity(0.5),
+                            fontSize: 12,
+                            fontWeight:
+                                selected ? FontWeight.w600 : FontWeight.w400,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: _buildChartContent(summary),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+  Widget _buildChartContent(DashboardSummary summary) {
+    switch (_chartTabIndex) {
+      case 0:
+        return DebtLoanChart(
+          key: const ValueKey('pie'),
+          totalDebt: summary.totalIOwe,
+          totalLoan: summary.totalOwedToMe,
+        );
+      case 1:
+        return MonthlyBarChart(
+          key: const ValueKey('bar'),
+          transactions: summary.allTransactions,
+        );
+      case 2:
+        return BalanceLineChart(
+          key: const ValueKey('line'),
+          transactions: summary.allTransactions,
+        );
+      default:
+        return const SizedBox.shrink();
+    }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+  Widget _buildPersonCard(PersonBalance pb, int index) {
+    final start = (index * 0.06).clamp(0.0, 0.7);
+    final end = (start + 0.5).clamp(start + 0.1, 1.0);
 
-    return AnimatedBuilder(
-      animation: _floatAnimation,
-      builder: (context, child) {
-        return Transform.translate(
-          offset: Offset(0, _floatAnimation.value),
-          child: Container(
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppTheme.primaryColor.withOpacity(0.1),
-                  AppTheme.loanColor.withOpacity(0.05),
-                ],
+    final slideAnim = Tween<Offset>(
+      begin: const Offset(0, 0.5),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _listAnimController,
+      curve: Interval(start, end, curve: Curves.easeOutQuart),
+    ));
+
+    final fadeAnim = CurvedAnimation(
+      parent: _listAnimController,
+      curve: Interval(start, end, curve: Curves.easeOut),
+    );
+
+    final isPositive = pb.netBalance >= 0;
+    final color = isPositive ? AppTheme.loanColor : AppTheme.debtColor;
+    final l10n = AppLocalizations.of(context)!;
+    final label = isPositive ? l10n.owesYou : l10n.youOwe;
+
+    final dateFormat = DateFormat('MMM dd');
+
+    return FadeTransition(
+      opacity: fadeAnim,
+      child: SlideTransition(
+        position: slideAnim,
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 16, 4),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => context.push('/person/${pb.person.id}'),
+              borderRadius: BorderRadius.circular(24),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: AppTheme.glassCardDecoration,
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        PersonAvatar(
+                          name: pb.person.name,
+                          size: 50,
+                          heroTag: 'avatar_${pb.person.id}',
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                pb.person.name,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: color.withOpacity(0.15),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      '${pb.activeCount} ${l10n.active}',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: color,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  if (pb.lastTransactionDate != null)
+                                    Text(
+                                      dateFormat
+                                          .format(pb.lastTransactionDate!),
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.white.withOpacity(0.4),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: color.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: TweenAnimationBuilder<double>(
+                            tween:
+                                Tween(begin: 0, end: pb.netBalance.abs()),
+                            duration:
+                                Duration(milliseconds: 800 + index * 100),
+                            curve: Curves.easeOutCubic,
+                            builder: (context, val, _) {
+                              return Text(
+                                _formatter.format(val),
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: color,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    // Progress bar
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0, end: pb.progressRatio),
+                        duration:
+                            Duration(milliseconds: 1000 + index * 100),
+                        curve: Curves.easeOutCubic,
+                        builder: (context, val, _) {
+                          return LinearProgressIndicator(
+                            value: val,
+                            minHeight: 4,
+                            backgroundColor:
+                                AppTheme.borderDark.withOpacity(0.3),
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(color),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          label,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.white.withOpacity(0.4),
+                          ),
+                        ),
+                        Text(
+                          '${(pb.progressRatio * 100).toInt()}% ${l10n.paid}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.white.withOpacity(0.4),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.account_balance_wallet_outlined,
-              size: 48,
-              color: theme.colorScheme.outline.withOpacity(0.5),
             ),
           ),
-        );
-      },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(AppLocalizations l10n) {
+    return FadeTransition(
+      opacity: _listAnimController,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 60),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppTheme.primaryColor.withOpacity(0.15),
+                      AppTheme.loanColor.withOpacity(0.08),
+                    ],
+                  ),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.account_balance_wallet_outlined,
+                  size: 48,
+                  color: Colors.white.withOpacity(0.3),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                l10n.noActiveDebts,
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.5),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                l10n.tapToAdd,
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.3),
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState(Object error, AppLocalizations l10n) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 60),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: AppTheme.debtColor),
+            const SizedBox(height: 16),
+            Text(l10n.errorLoading,
+                style: const TextStyle(color: Colors.white, fontSize: 16)),
+            const SizedBox(height: 8),
+            Text(error.toString(),
+                style: TextStyle(
+                    color: Colors.white.withOpacity(0.5), fontSize: 12)),
+          ],
+        ),
+      ),
     );
   }
 }

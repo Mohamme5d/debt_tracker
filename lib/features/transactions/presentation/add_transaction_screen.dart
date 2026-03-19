@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:debt_tracker/l10n/app_localizations.dart';
+import 'package:raseed/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -110,14 +110,14 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     final typeColor =
         _type == TransactionType.debt ? AppTheme.debtColor : AppTheme.loanColor;
 
     return Scaffold(
-      backgroundColor: AppTheme.surfaceColor,
+      backgroundColor: AppTheme.backgroundDark,
       appBar: AppBar(
+        backgroundColor: AppTheme.backgroundDark,
         title: Text(l10n.addTransaction),
         leading: IconButton(
           icon: const Icon(Icons.close_rounded),
@@ -136,19 +136,22 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(l10n.person,
-                      style: theme.textTheme.labelLarge?.copyWith(
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.7),
                         fontWeight: FontWeight.w600,
+                        fontSize: 14,
                       )),
                   const SizedBox(height: 8),
-                  _buildPersonSelector(theme, l10n),
+                  _buildPersonSelector(l10n),
                   if (_personError != null)
                     Padding(
                       padding: const EdgeInsetsDirectional.only(
                           top: 4, start: 12),
                       child: Text(
                         _personError!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.error,
+                        style: const TextStyle(
+                          color: AppTheme.debtColor,
+                          fontSize: 12,
                         ),
                       ),
                     ),
@@ -164,8 +167,10 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(l10n.type,
-                      style: theme.textTheme.labelLarge?.copyWith(
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.7),
                         fontWeight: FontWeight.w600,
+                        fontSize: 14,
                       )),
                   const SizedBox(height: 8),
                   _buildTypeSelector(l10n, typeColor),
@@ -181,8 +186,10 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(l10n.amount,
-                      style: theme.textTheme.labelLarge?.copyWith(
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.7),
                         fontWeight: FontWeight.w600,
+                        fontSize: 14,
                       )),
                   const SizedBox(height: 8),
                   TextFormField(
@@ -231,8 +238,10 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(l10n.date,
-                      style: theme.textTheme.labelLarge?.copyWith(
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.7),
                         fontWeight: FontWeight.w600,
+                        fontSize: 14,
                       )),
                   const SizedBox(height: 8),
                   _DatePickerTile(
@@ -253,8 +262,10 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(l10n.dueDateOptional,
-                      style: theme.textTheme.labelLarge?.copyWith(
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.7),
                         fontWeight: FontWeight.w600,
+                        fontSize: 14,
                       )),
                   const SizedBox(height: 8),
                   _DatePickerTile(
@@ -280,13 +291,16 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(l10n.note,
-                      style: theme.textTheme.labelLarge?.copyWith(
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.7),
                         fontWeight: FontWeight.w600,
+                        fontSize: 14,
                       )),
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _noteController,
                     maxLines: 3,
+                    style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       hintText: l10n.addNote,
                     ),
@@ -308,7 +322,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
     );
   }
 
-  Widget _buildPersonSelector(ThemeData theme, AppLocalizations l10n) {
+  Widget _buildPersonSelector(AppLocalizations l10n) {
     return InkWell(
       onTap: _showContactPicker,
       borderRadius: BorderRadius.circular(14),
@@ -318,15 +332,15 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: _selectedPerson != null
-              ? AppTheme.primaryColor.withOpacity(0.05)
-              : const Color(0xFFF0F4FF),
+              ? AppTheme.primaryColor.withOpacity(0.08)
+              : AppTheme.surfaceDark,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: _personError != null
-                ? theme.colorScheme.error
+                ? AppTheme.debtColor
                 : _selectedPerson != null
                     ? AppTheme.primaryColor.withOpacity(0.3)
-                    : Colors.transparent,
+                    : AppTheme.borderDark,
             width: 1.5,
           ),
         ),
@@ -341,27 +355,33 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                   children: [
                     Text(
                       _selectedPerson!.name,
-                      style: theme.textTheme.bodyLarge?.copyWith(
+                      style: const TextStyle(
+                        color: Colors.white,
                         fontWeight: FontWeight.w600,
+                        fontSize: 16,
                       ),
                     ),
                     if (_selectedPerson!.phoneNumber != null)
                       Text(
                         _selectedPerson!.phoneNumber!,
-                        style: theme.textTheme.bodySmall,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.5),
+                          fontSize: 13,
+                        ),
                       ),
                   ],
                 ),
               ),
-              Icon(Icons.swap_horiz, color: theme.colorScheme.outline),
+              Icon(Icons.swap_horiz,
+                  color: Colors.white.withOpacity(0.4)),
             ] else ...[
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withOpacity(0.1),
+                  color: AppTheme.primaryColor.withOpacity(0.15),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.person_add_outlined,
                   color: AppTheme.primaryColor,
                   size: 20,
@@ -370,8 +390,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
               const SizedBox(width: 12),
               Text(
                 l10n.selectPerson,
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.outline,
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.5),
+                  fontSize: 16,
                 ),
               ),
             ],
@@ -457,7 +478,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                 builder: (context, value, _) {
                   return Transform.scale(
                     scale: value,
-                    child: Icon(
+                    child: const Icon(
                       Icons.check_circle_rounded,
                       color: AppTheme.loanColor,
                       size: 48,
@@ -473,6 +494,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                 onPressed: _isLoading ? null : _save,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: typeColor,
+                  foregroundColor: Colors.white,
                 ),
                 icon: _isLoading
                     ? const SizedBox(
@@ -495,6 +517,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
+      backgroundColor: AppTheme.surfaceDark,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -572,7 +595,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
   }
 }
 
-/// Animated type chip
+/// Animated type chip — dark theme
 class _TypeChip extends StatelessWidget {
   const _TypeChip({
     required this.label,
@@ -597,10 +620,12 @@ class _TypeChip extends StatelessWidget {
         curve: Curves.easeInOut,
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
         decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.12) : Colors.transparent,
+          color: isSelected
+              ? color.withOpacity(0.15)
+              : AppTheme.surfaceDark,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isSelected ? color : Colors.grey.withOpacity(0.3),
+            color: isSelected ? color : AppTheme.borderDark,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -612,7 +637,9 @@ class _TypeChip extends StatelessWidget {
               child: Icon(
                 icon,
                 key: ValueKey(isSelected),
-                color: isSelected ? color : Colors.grey,
+                color: isSelected
+                    ? color
+                    : Colors.white.withOpacity(0.4),
                 size: 20,
               ),
             ),
@@ -621,8 +648,11 @@ class _TypeChip extends StatelessWidget {
               child: Text(
                 label,
                 style: TextStyle(
-                  color: isSelected ? color : Colors.grey[600],
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+                  color: isSelected
+                      ? color
+                      : Colors.white.withOpacity(0.5),
+                  fontWeight:
+                      isSelected ? FontWeight.w700 : FontWeight.w400,
                   fontSize: 13,
                 ),
                 maxLines: 1,
@@ -636,7 +666,7 @@ class _TypeChip extends StatelessWidget {
   }
 }
 
-/// Animated date picker tile
+/// Animated date picker tile — dark theme
 class _DatePickerTile extends StatelessWidget {
   const _DatePickerTile({
     required this.label,
@@ -652,7 +682,6 @@ class _DatePickerTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final locale = Localizations.localeOf(context);
     final dateFormat = locale.languageCode == 'ar'
         ? DateFormat('yyyy/MM/dd', 'ar')
@@ -677,13 +706,13 @@ class _DatePickerTile extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: date != null
-              ? AppTheme.primaryColor.withOpacity(0.05)
-              : const Color(0xFFF0F4FF),
+              ? AppTheme.primaryColor.withOpacity(0.08)
+              : AppTheme.surfaceDark,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: date != null
-                ? AppTheme.primaryColor.withOpacity(0.2)
-                : Colors.transparent,
+                ? AppTheme.primaryColor.withOpacity(0.3)
+                : AppTheme.borderDark,
           ),
         ),
         child: Row(
@@ -693,21 +722,26 @@ class _DatePickerTile extends StatelessWidget {
               size: 20,
               color: date != null
                   ? AppTheme.primaryColor
-                  : theme.colorScheme.outline,
+                  : Colors.white.withOpacity(0.4),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 date != null ? dateFormat.format(date!) : label,
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: date == null ? theme.colorScheme.outline : null,
+                style: TextStyle(
+                  color: date != null
+                      ? Colors.white
+                      : Colors.white.withOpacity(0.5),
                   fontWeight: date != null ? FontWeight.w500 : null,
+                  fontSize: 15,
                 ),
               ),
             ),
             if (onClear != null)
               IconButton(
-                icon: const Icon(Icons.clear_rounded, size: 18),
+                icon: Icon(Icons.clear_rounded,
+                    size: 18,
+                    color: Colors.white.withOpacity(0.4)),
                 onPressed: onClear,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),

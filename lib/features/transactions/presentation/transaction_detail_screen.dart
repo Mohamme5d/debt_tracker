@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:debt_tracker/l10n/app_localizations.dart';
+import 'package:raseed/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -8,6 +8,7 @@ import '../../../app/theme.dart';
 import '../../../core/db/models/enums.dart';
 import '../../../core/db/models/payment.dart';
 import '../../../core/widgets/amount_display.dart';
+import '../../../shared/widgets/gradient_card.dart';
 import '../providers/transaction_provider.dart';
 
 class TransactionDetailScreen extends ConsumerStatefulWidget {
@@ -34,17 +35,14 @@ class _TransactionDetailScreenState
       vsync: this,
       duration: const Duration(milliseconds: 700),
     )..forward();
-
     _listAnimController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
     );
-
     _progressAnimController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     );
-
     Future.delayed(const Duration(milliseconds: 400), () {
       if (mounted) {
         _progressAnimController.forward();
@@ -66,7 +64,6 @@ class _TransactionDetailScreenState
     final txAsync = ref.watch(transactionByIdProvider(widget.transactionId));
     final paymentsAsync =
         ref.watch(paymentsForTransactionProvider(widget.transactionId));
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context);
 
@@ -78,8 +75,12 @@ class _TransactionDetailScreenState
       data: (tx) {
         if (tx == null) {
           return Scaffold(
+            backgroundColor: AppTheme.backgroundDark,
             appBar: AppBar(title: Text(l10n.transaction)),
-            body: Center(child: Text(l10n.notFound)),
+            body: Center(
+              child: Text(l10n.notFound,
+                  style: const TextStyle(color: Colors.white)),
+            ),
           );
         }
 
@@ -89,20 +90,20 @@ class _TransactionDetailScreenState
         final typeLabel = isDebt ? l10n.debt : l10n.loan;
         final progress =
             tx.amount > 0 ? (tx.amountPaid / tx.amount).clamp(0.0, 1.0) : 0.0;
-
         final isOverdue = tx.dueDate != null &&
             tx.dueDate!.isBefore(DateTime.now()) &&
             tx.status == TransactionStatus.active;
-
         final isSettled = tx.status == TransactionStatus.settled;
 
         return Scaffold(
-          backgroundColor: AppTheme.surfaceColor,
+          backgroundColor: AppTheme.backgroundDark,
           appBar: AppBar(
+            backgroundColor: AppTheme.backgroundDark,
             title: Text(person?.name ?? ''),
             actions: [
               if (!isSettled)
                 PopupMenuButton(
+                  color: AppTheme.surfaceDark,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -111,9 +112,11 @@ class _TransactionDetailScreenState
                       value: 'settle',
                       child: Row(
                         children: [
-                          const Icon(Icons.check_circle_outline, size: 20),
+                          const Icon(Icons.check_circle_outline, size: 20,
+                              color: Colors.white),
                           const SizedBox(width: 8),
-                          Text(l10n.markSettled),
+                          Text(l10n.markSettled,
+                              style: const TextStyle(color: Colors.white)),
                         ],
                       ),
                     ),
@@ -121,11 +124,12 @@ class _TransactionDetailScreenState
                       value: 'delete',
                       child: Row(
                         children: [
-                          Icon(Icons.delete_outline,
+                          const Icon(Icons.delete_outline,
                               size: 20, color: AppTheme.debtColor),
                           const SizedBox(width: 8),
                           Text(l10n.delete,
-                              style: TextStyle(color: AppTheme.debtColor)),
+                              style:
+                                  const TextStyle(color: AppTheme.debtColor)),
                         ],
                       ),
                     ),
@@ -152,7 +156,7 @@ class _TransactionDetailScreenState
           body: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              // Header card with animations
+              // Header card
               FadeTransition(
                 opacity: _headerAnimController,
                 child: SlideTransition(
@@ -163,22 +167,19 @@ class _TransactionDetailScreenState
                     parent: _headerAnimController,
                     curve: Curves.easeOutCubic,
                   )),
-                  child: Container(
+                  child: GradientCard(
                     padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: theme.cardTheme.color ?? Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: typeColor.withOpacity(0.08),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
-                        ),
+                    gradient: LinearGradient(
+                      begin: AlignmentDirectional.topStart,
+                      end: AlignmentDirectional.bottomEnd,
+                      colors: [
+                        typeColor.withOpacity(0.12),
+                        AppTheme.surfaceDark2,
                       ],
                     ),
+                    borderColor: typeColor.withOpacity(0.2),
                     child: Column(
                       children: [
-                        // Type badge + status
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -188,7 +189,7 @@ class _TransactionDetailScreenState
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: typeColor.withOpacity(0.1),
+                                color: typeColor.withOpacity(0.15),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Text(
@@ -200,16 +201,10 @@ class _TransactionDetailScreenState
                                 ),
                               ),
                             ),
-                            _AnimatedStatusBadge(
-                              status: tx.status,
-                              isOverdue: isOverdue,
-                              l10n: l10n,
-                            ),
+                            _statusBadge(tx.status, isOverdue, l10n),
                           ],
                         ),
                         const SizedBox(height: 24),
-
-                        // Animated amount
                         TweenAnimationBuilder<double>(
                           tween: Tween(begin: 0, end: tx.amount),
                           duration: const Duration(milliseconds: 1000),
@@ -218,7 +213,7 @@ class _TransactionDetailScreenState
                             return Text(
                               NumberFormat('#,##0.00').format(val),
                               style: TextStyle(
-                                fontSize: 36,
+                                fontSize: 40,
                                 fontWeight: FontWeight.w800,
                                 color: typeColor,
                               ),
@@ -226,8 +221,7 @@ class _TransactionDetailScreenState
                           },
                         ),
                         const SizedBox(height: 20),
-
-                        // Animated progress bar
+                        // Progress
                         Column(
                           children: [
                             Row(
@@ -236,14 +230,18 @@ class _TransactionDetailScreenState
                               children: [
                                 Text(
                                   '${l10n.paid}: ${AmountDisplay.format(tx.amountPaid)}',
-                                  style: theme.textTheme.bodySmall?.copyWith(
+                                  style: TextStyle(
                                     fontWeight: FontWeight.w500,
+                                    color: Colors.white.withOpacity(0.6),
+                                    fontSize: 13,
                                   ),
                                 ),
                                 Text(
                                   '${l10n.remaining}: ${AmountDisplay.format(tx.remaining)}',
-                                  style: theme.textTheme.bodySmall?.copyWith(
+                                  style: TextStyle(
                                     fontWeight: FontWeight.w500,
+                                    color: Colors.white.withOpacity(0.6),
+                                    fontSize: 13,
                                   ),
                                 ),
                               ],
@@ -259,8 +257,8 @@ class _TransactionDetailScreenState
                                   return LinearProgressIndicator(
                                     value: progress * t,
                                     minHeight: 10,
-                                    backgroundColor: theme.colorScheme
-                                        .surfaceContainerHighest,
+                                    backgroundColor:
+                                        AppTheme.borderDark.withOpacity(0.3),
                                     valueColor:
                                         AlwaysStoppedAnimation<Color>(
                                             typeColor),
@@ -289,72 +287,88 @@ class _TransactionDetailScreenState
                           ],
                         ),
                         const SizedBox(height: 16),
-
                         // Date info
-                        _InfoRow(
-                          icon: Icons.calendar_today_rounded,
-                          label:
-                              '${l10n.created}: ${dateFormat.format(tx.date)}',
+                        _infoRow(
+                          Icons.calendar_today_rounded,
+                          '${l10n.created}: ${dateFormat.format(tx.date)}',
                         ),
                         if (tx.dueDate != null) ...[
                           const SizedBox(height: 6),
-                          _InfoRow(
-                            icon: Icons.event_rounded,
-                            label:
-                                '${l10n.due}: ${dateFormat.format(tx.dueDate!)}',
-                            color: isOverdue ? AppTheme.debtColor : null,
-                            trailing: isOverdue
-                                ? _OverduePulse(l10n: l10n)
-                                : null,
+                          _infoRow(
+                            Icons.event_rounded,
+                            '${l10n.due}: ${dateFormat.format(tx.dueDate!)}',
+                            color: isOverdue ? AppTheme.overdueColor : null,
                           ),
                         ],
-
-                        // Note
                         if (tx.note != null && tx.note!.isNotEmpty) ...[
                           const SizedBox(height: 12),
-                          const Divider(),
+                          Divider(color: AppTheme.borderDark.withOpacity(0.5)),
                           const SizedBox(height: 8),
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
-                                Icons.note_rounded,
-                                size: 16,
-                                color: theme.colorScheme.outline,
-                              ),
+                              Icon(Icons.note_rounded,
+                                  size: 16,
+                                  color: Colors.white.withOpacity(0.4)),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   tx.note!,
-                                  style: theme.textTheme.bodyMedium,
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.7),
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                         ],
-
-                        // Settled celebration
                         if (isSettled) ...[
                           const SizedBox(height: 20),
-                          _SettledCelebration(l10n: l10n),
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppTheme.loanColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: AppTheme.loanColor.withOpacity(0.2),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.check_circle_rounded,
+                                    color: AppTheme.loanColor, size: 28),
+                                const SizedBox(width: 10),
+                                Text(
+                                  l10n.settled_status,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppTheme.loanColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ],
                       ],
                     ),
                   ),
                 ),
               ),
-
               const SizedBox(height: 24),
 
-              // Payments section header
+              // Payments header
               FadeTransition(
                 opacity: _listAnimController,
                 child: Padding(
                   padding: const EdgeInsetsDirectional.only(start: 4),
                   child: Text(
                     l10n.payments,
-                    style: theme.textTheme.titleMedium?.copyWith(
+                    style: TextStyle(
                       fontWeight: FontWeight.w700,
+                      color: Colors.white.withOpacity(0.7),
+                      fontSize: 16,
                     ),
                   ),
                 ),
@@ -366,26 +380,19 @@ class _TransactionDetailScreenState
                   if (payments.isEmpty) {
                     return FadeTransition(
                       opacity: _listAnimController,
-                      child: Container(
+                      child: GradientCard(
                         padding: const EdgeInsets.all(32),
-                        decoration: BoxDecoration(
-                          color: theme.cardTheme.color ?? Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
                         child: Center(
                           child: Column(
                             children: [
-                              Icon(
-                                Icons.payments_outlined,
-                                size: 44,
-                                color: theme.colorScheme.outline
-                                    .withOpacity(0.5),
-                              ),
+                              Icon(Icons.payments_outlined,
+                                  size: 44,
+                                  color: Colors.white.withOpacity(0.2)),
                               const SizedBox(height: 8),
                               Text(
                                 l10n.noPaymentsYet,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.outline,
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.4),
                                 ),
                               ),
                             ],
@@ -397,28 +404,15 @@ class _TransactionDetailScreenState
 
                   return Column(
                     children: List.generate(payments.length, (index) {
-                      final payment = payments[index];
-                      return _AnimatedPaymentTile(
-                        payment: payment,
-                        index: index,
-                        controller: _listAnimController,
-                        l10n: l10n,
-                        dateFormat: dateFormat,
-                        onDelete: () async {
-                          final useCase =
-                              ref.read(recordPaymentUseCaseProvider);
-                          await useCase.deletePayment(
-                            payment: payment,
-                            transaction: tx,
-                          );
-                        },
-                      );
+                      return _paymentTile(
+                          payments[index], index, l10n, dateFormat, tx);
                     }),
                   );
                 },
                 loading: () =>
                     const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Text('Error: $e'),
+                error: (e, _) => Text('Error: $e',
+                    style: const TextStyle(color: Colors.white)),
               ),
               const SizedBox(height: 100),
             ],
@@ -427,8 +421,8 @@ class _TransactionDetailScreenState
               ? ScaleTransition(
                   scale: CurvedAnimation(
                     parent: _headerAnimController,
-                    curve:
-                        const Interval(0.5, 1.0, curve: Curves.elasticOut),
+                    curve: const Interval(0.5, 1.0,
+                        curve: Curves.elasticOut),
                   ),
                   child: FloatingActionButton.extended(
                     onPressed: () =>
@@ -441,12 +435,165 @@ class _TransactionDetailScreenState
         );
       },
       loading: () => Scaffold(
+        backgroundColor: AppTheme.backgroundDark,
         appBar: AppBar(title: Text(l10n.transaction)),
         body: const Center(child: CircularProgressIndicator()),
       ),
       error: (e, _) => Scaffold(
+        backgroundColor: AppTheme.backgroundDark,
         appBar: AppBar(title: Text(l10n.transaction)),
-        body: Center(child: Text('Error: $e')),
+        body: Center(
+          child: Text('Error: $e',
+              style: const TextStyle(color: Colors.white)),
+        ),
+      ),
+    );
+  }
+
+  Widget _statusBadge(
+      TransactionStatus status, bool isOverdue, AppLocalizations l10n) {
+    final Color bg;
+    final Color fg;
+    final String label;
+
+    if (isOverdue || status == TransactionStatus.overdue) {
+      bg = AppTheme.overdueColor.withOpacity(0.15);
+      fg = AppTheme.overdueColor;
+      label = l10n.overdue;
+    } else if (status == TransactionStatus.settled) {
+      bg = AppTheme.loanColor.withOpacity(0.15);
+      fg = AppTheme.loanColor;
+      label = l10n.settled;
+    } else {
+      bg = AppTheme.primaryColor.withOpacity(0.15);
+      fg = AppTheme.primaryColor;
+      label = l10n.active;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: fg,
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+
+  Widget _infoRow(IconData icon, String label, {Color? color}) {
+    final effectiveColor = color ?? Colors.white.withOpacity(0.5);
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: effectiveColor),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: effectiveColor,
+              fontSize: 13,
+              fontWeight: color != null ? FontWeight.w600 : FontWeight.w400,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _paymentTile(Payment payment, int index, AppLocalizations l10n,
+      DateFormat dateFormat, dynamic tx) {
+    final start = (index * 0.08).clamp(0.0, 0.6);
+    final end = (start + 0.5).clamp(start + 0.1, 1.0);
+
+    return FadeTransition(
+      opacity: CurvedAnimation(
+        parent: _listAnimController,
+        curve: Interval(start, end, curve: Curves.easeOut),
+      ),
+      child: Dismissible(
+        key: ValueKey(payment.id),
+        direction: DismissDirection.endToStart,
+        background: Container(
+          alignment: AlignmentDirectional.centerEnd,
+          padding: const EdgeInsetsDirectional.only(end: 20),
+          margin: const EdgeInsets.symmetric(vertical: 4),
+          decoration: BoxDecoration(
+            color: AppTheme.debtColor.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: const Icon(Icons.delete_rounded, color: AppTheme.debtColor),
+        ),
+        confirmDismiss: (_) async {
+          return await showDialog<bool>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: Text(l10n.deletePayment),
+                  content: Text(l10n.deletePaymentConfirm),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: Text(l10n.cancel),
+                    ),
+                    FilledButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      style: FilledButton.styleFrom(
+                          backgroundColor: AppTheme.debtColor),
+                      child: Text(l10n.delete),
+                    ),
+                  ],
+                ),
+              ) ??
+              false;
+        },
+        onDismissed: (_) async {
+          final useCase = ref.read(recordPaymentUseCaseProvider);
+          await useCase.deletePayment(payment: payment, transaction: tx);
+        },
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 4),
+          decoration: AppTheme.glassCardDecoration,
+          child: ListTile(
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            leading: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppTheme.loanColor.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.payment_rounded,
+                  color: AppTheme.loanColor, size: 20),
+            ),
+            title: Text(
+              AmountDisplay.format(payment.amount),
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                color: AppTheme.loanColor,
+              ),
+            ),
+            subtitle: Text(
+              dateFormat.format(payment.date),
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.4),
+                fontSize: 12,
+              ),
+            ),
+            trailing: payment.note != null && payment.note!.isNotEmpty
+                ? Tooltip(
+                    message: payment.note!,
+                    child: Icon(Icons.note_rounded,
+                        size: 18, color: Colors.white.withOpacity(0.3)),
+                  )
+                : null,
+          ),
+        ),
       ),
     );
   }
@@ -455,19 +602,16 @@ class _TransactionDetailScreenState
       BuildContext context, AppLocalizations l10n) async {
     return await showDialog<bool>(
           context: context,
-          builder: (context) => AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
+          builder: (ctx) => AlertDialog(
             title: Text(l10n.deleteTransaction),
             content: Text(l10n.deleteTransactionConfirm),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context, false),
+                onPressed: () => Navigator.pop(ctx, false),
                 child: Text(l10n.cancel),
               ),
               FilledButton(
-                onPressed: () => Navigator.pop(context, true),
+                onPressed: () => Navigator.pop(ctx, true),
                 style:
                     FilledButton.styleFrom(backgroundColor: AppTheme.debtColor),
                 child: Text(l10n.delete),
@@ -491,9 +635,6 @@ class _TransactionDetailScreenState
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
       builder: (sheetContext) => Padding(
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
@@ -511,7 +652,7 @@ class _TransactionDetailScreenState
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
+                      color: AppTheme.borderDark,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -519,18 +660,16 @@ class _TransactionDetailScreenState
                 const SizedBox(height: 20),
                 Text(
                   l10n.recordPayment,
-                  style:
-                      Theme.of(sheetContext).textTheme.titleLarge?.copyWith(
+                  style: const TextStyle(
                     fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    fontSize: 20,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   '${l10n.remaining}: ${AmountDisplay.format(tx.remaining)}',
-                  style:
-                      Theme.of(sheetContext).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(sheetContext).colorScheme.outline,
-                  ),
+                  style: TextStyle(color: Colors.white.withOpacity(0.5)),
                 ),
                 const SizedBox(height: 20),
                 TextFormField(
@@ -541,6 +680,7 @@ class _TransactionDetailScreenState
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
+                    color: Colors.white,
                   ),
                   decoration: InputDecoration(
                     labelText: l10n.amount,
@@ -563,6 +703,7 @@ class _TransactionDetailScreenState
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: noteController,
+                  style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     labelText: l10n.paymentNote,
                     prefixIcon: const Icon(Icons.note_rounded),
@@ -577,8 +718,7 @@ class _TransactionDetailScreenState
 
                       final useCase =
                           ref.read(recordPaymentUseCaseProvider);
-                      final amount =
-                          double.parse(amountController.text);
+                      final amount = double.parse(amountController.text);
                       final note = noteController.text.isEmpty
                           ? null
                           : noteController.text;
@@ -592,13 +732,7 @@ class _TransactionDetailScreenState
                         if (sheetContext.mounted) {
                           Navigator.pop(sheetContext);
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(l10n.paymentAdded),
-                              behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
+                            SnackBar(content: Text(l10n.paymentAdded)),
                           );
                         }
                       } catch (e) {
@@ -616,357 +750,6 @@ class _TransactionDetailScreenState
                 const SizedBox(height: 8),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Info row for dates
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({
-    required this.icon,
-    required this.label,
-    this.color,
-    this.trailing,
-  });
-
-  final IconData icon;
-  final String label;
-  final Color? color;
-  final Widget? trailing;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final effectiveColor = color ?? theme.colorScheme.outline;
-
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: effectiveColor),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: effectiveColor,
-              fontWeight: color != null ? FontWeight.w600 : null,
-            ),
-          ),
-        ),
-        if (trailing != null) trailing!,
-      ],
-    );
-  }
-}
-
-/// Animated status badge
-class _AnimatedStatusBadge extends StatelessWidget {
-  const _AnimatedStatusBadge({
-    required this.status,
-    required this.isOverdue,
-    required this.l10n,
-  });
-
-  final TransactionStatus status;
-  final bool isOverdue;
-  final AppLocalizations l10n;
-
-  @override
-  Widget build(BuildContext context) {
-    final Color backgroundColor;
-    final Color foregroundColor;
-    final String label;
-
-    if (isOverdue || status == TransactionStatus.overdue) {
-      backgroundColor = Colors.red.shade50;
-      foregroundColor = Colors.red.shade700;
-      label = l10n.overdue;
-    } else if (status == TransactionStatus.settled) {
-      backgroundColor = Colors.green.shade50;
-      foregroundColor = Colors.green.shade700;
-      label = l10n.settled;
-    } else {
-      backgroundColor = Colors.blue.shade50;
-      foregroundColor = Colors.blue.shade700;
-      label = l10n.active;
-    }
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: foregroundColor,
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-    );
-  }
-}
-
-/// Overdue pulse indicator
-class _OverduePulse extends StatefulWidget {
-  const _OverduePulse({required this.l10n});
-
-  final AppLocalizations l10n;
-
-  @override
-  State<_OverduePulse> createState() => _OverduePulseState();
-}
-
-class _OverduePulseState extends State<_OverduePulse>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: Tween(begin: 0.5, end: 1.0).animate(_controller),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-        decoration: BoxDecoration(
-          color: Colors.red.shade50,
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: Text(
-          widget.l10n.overdue.toUpperCase(),
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.bold,
-            color: Colors.red.shade700,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Animated payment tile
-class _AnimatedPaymentTile extends StatelessWidget {
-  const _AnimatedPaymentTile({
-    required this.payment,
-    required this.index,
-    required this.controller,
-    required this.l10n,
-    required this.dateFormat,
-    required this.onDelete,
-  });
-
-  final Payment payment;
-  final int index;
-  final AnimationController controller;
-  final AppLocalizations l10n;
-  final DateFormat dateFormat;
-  final VoidCallback onDelete;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    final start = (index * 0.08).clamp(0.0, 0.6);
-    final end = (start + 0.5).clamp(start + 0.1, 1.0);
-
-    final fadeAnim = CurvedAnimation(
-      parent: controller,
-      curve: Interval(start, end, curve: Curves.easeOut),
-    );
-
-    final slideAnim = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: controller,
-      curve: Interval(start, end, curve: Curves.easeOutCubic),
-    ));
-
-    return FadeTransition(
-      opacity: fadeAnim,
-      child: SlideTransition(
-        position: slideAnim,
-        child: Dismissible(
-          key: ValueKey(payment.id),
-          direction: DismissDirection.endToStart,
-          background: Container(
-            alignment: AlignmentDirectional.centerEnd,
-            padding: const EdgeInsetsDirectional.only(end: 20),
-            margin: const EdgeInsets.symmetric(vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.red.shade50,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(Icons.delete_rounded, color: Colors.red.shade700),
-          ),
-          confirmDismiss: (_) async {
-            return await showDialog<bool>(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    title: Text(l10n.deletePayment),
-                    content: Text(l10n.deletePaymentConfirm),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: Text(l10n.cancel),
-                      ),
-                      FilledButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        style: FilledButton.styleFrom(
-                            backgroundColor: AppTheme.debtColor),
-                        child: Text(l10n.delete),
-                      ),
-                    ],
-                  ),
-                ) ??
-                false;
-          },
-          onDismissed: (_) => onDelete(),
-          child: Container(
-            margin: const EdgeInsets.symmetric(vertical: 4),
-            decoration: BoxDecoration(
-              color: theme.cardTheme.color ?? Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: ListTile(
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              leading: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppTheme.loanColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.payment_rounded,
-                  color: AppTheme.loanColor,
-                  size: 20,
-                ),
-              ),
-              title: Text(
-                AmountDisplay.format(payment.amount),
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.loanColor,
-                ),
-              ),
-              subtitle: Text(
-                dateFormat.format(payment.date),
-                style: theme.textTheme.bodySmall,
-              ),
-              trailing: payment.note != null && payment.note!.isNotEmpty
-                  ? Tooltip(
-                      message: payment.note!,
-                      child: Icon(
-                        Icons.note_rounded,
-                        size: 18,
-                        color: theme.colorScheme.outline,
-                      ),
-                    )
-                  : null,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Settled celebration animation
-class _SettledCelebration extends StatefulWidget {
-  const _SettledCelebration({required this.l10n});
-
-  final AppLocalizations l10n;
-
-  @override
-  State<_SettledCelebration> createState() => _SettledCelebrationState();
-}
-
-class _SettledCelebrationState extends State<_SettledCelebration>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    )..forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ScaleTransition(
-      scale: CurvedAnimation(
-        parent: _controller,
-        curve: Curves.elasticOut,
-      ),
-      child: FadeTransition(
-        opacity: _controller,
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppTheme.loanColor.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: AppTheme.loanColor.withOpacity(0.2),
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.check_circle_rounded,
-                color: AppTheme.loanColor,
-                size: 28,
-              ),
-              const SizedBox(width: 10),
-              Text(
-                widget.l10n.settled_status,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.loanColor,
-                ),
-              ),
-            ],
           ),
         ),
       ),
