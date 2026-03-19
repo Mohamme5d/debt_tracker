@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart' as fc;
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:debt_tracker/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme.dart';
@@ -263,7 +263,7 @@ class _ContactPickerWidgetState extends ConsumerState<ContactPickerWidget>
 
   Future<void> _addManually(String name) async {
     final saved = await ref.read(
-      getOrCreatePersonProvider(name: name).future,
+      getOrCreatePersonProvider(personName: name).future,
     );
     if (mounted) {
       widget.onPersonSelected?.call(saved);
@@ -282,7 +282,7 @@ class _ContactPickerWidgetState extends ConsumerState<ContactPickerWidget>
 
     final person = await ref.read(
       getOrCreatePersonProvider(
-        name: contact.displayName,
+        personName: contact.displayName,
         phoneNumber: phone,
         isFromContacts: true,
       ).future,

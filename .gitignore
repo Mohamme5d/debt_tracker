@@ -21,3 +21,5 @@ lib/l10n/generated/
 # Env
 .env
 *.env
+flutter_01.log
+build/

@@ -1,5 +1,4 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// Run: dart run build_runner build --delete-conflicting-outputs
 
 part of 'debt_transaction.dart';
 
@@ -16,7 +15,7 @@ extension GetDebtTransactionCollection on Isar {
 
 const DebtTransactionSchema = CollectionSchema(
   name: r'DebtTransaction',
-  id: 3271296265498498197,
+  id: 2874826172593803921,
   properties: {
     r'amount': PropertySchema(
       id: 0,
@@ -57,11 +56,13 @@ const DebtTransactionSchema = CollectionSchema(
       id: 7,
       name: r'status',
       type: IsarType.byte,
+      enumMap: _DebtTransactionstatusEnumValueMap,
     ),
     r'type': PropertySchema(
       id: 8,
       name: r'type',
       type: IsarType.byte,
+      enumMap: _DebtTransactiontypeEnumValueMap,
     )
   },
   estimateSize: _debtTransactionEstimateSize,
@@ -72,7 +73,7 @@ const DebtTransactionSchema = CollectionSchema(
   indexes: {},
   links: {
     r'person': LinkSchema(
-      id: -5765036756576079499,
+      id: -8461621379765814018,
       name: r'person',
       target: r'Person',
       single: true,
@@ -165,20 +166,27 @@ P _debtTransactionDeserializeProp<P>(
               reader.readByteOrNull(offset)] ??
           TransactionStatus.active) as P;
     case 8:
-      return (_DebtTransactiontypeValueEnumMap[
-              reader.readByteOrNull(offset)] ??
+      return (_DebtTransactiontypeValueEnumMap[reader.readByteOrNull(offset)] ??
           TransactionType.debt) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
 }
 
+const _DebtTransactionstatusEnumValueMap = {
+  'active': 0,
+  'settled': 1,
+  'overdue': 2,
+};
 const _DebtTransactionstatusValueEnumMap = {
   0: TransactionStatus.active,
   1: TransactionStatus.settled,
   2: TransactionStatus.overdue,
 };
-
+const _DebtTransactiontypeEnumValueMap = {
+  'debt': 0,
+  'loan': 1,
+};
 const _DebtTransactiontypeValueEnumMap = {
   0: TransactionType.debt,
   1: TransactionType.loan,
@@ -218,6 +226,64 @@ extension DebtTransactionQueryWhere
       ));
     });
   }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterWhereClause>
+      idNotEqualTo(Id id) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: id, includeUpper: false),
+            )
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: id, includeLower: false),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: id, includeLower: false),
+            )
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: id, includeUpper: false),
+            );
+      }
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterWhereClause>
+      idGreaterThan(Id id, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.greaterThan(lower: id, includeLower: include),
+      );
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterWhereClause> idLessThan(
+      Id id,
+      {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.lessThan(upper: id, includeUpper: include),
+      );
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterWhereClause> idBetween(
+    Id lowerId,
+    Id upperId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: lowerId,
+        includeLower: includeLower,
+        upper: upperId,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
 }
 
 extension DebtTransactionQueryFilter
@@ -253,40 +319,159 @@ extension DebtTransactionQueryFilter
   }
 
   QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
-      idEqualTo(Id value) {
+      amountLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'amount',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      amountBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'amount',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      amountPaidEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'id',
+        property: r'amountPaid',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      amountPaidGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'amountPaid',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      amountPaidLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'amountPaid',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      amountPaidBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'amountPaid',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      dateEqualTo(DateTime value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'date',
         value: value,
       ));
     });
   }
 
   QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
-      statusEqualTo(TransactionStatus value) {
+      dateGreaterThan(
+    DateTime value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'status',
-        value: value.index,
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'date',
+        value: value,
       ));
     });
   }
 
   QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
-      typeEqualTo(TransactionType value) {
+      dateLessThan(
+    DateTime value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'type',
-        value: value.index,
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'date',
+        value: value,
       ));
     });
   }
 
   QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
-      noteIsNull() {
+      dateBetween(
+    DateTime lower,
+    DateTime upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'note',
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'date',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -305,6 +490,460 @@ extension DebtTransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'dueDate',
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      dueDateEqualTo(DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'dueDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      dueDateGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'dueDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      dueDateLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'dueDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      dueDateBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'dueDate',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      idEqualTo(Id value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'id',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      idGreaterThan(
+    Id value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      idLessThan(
+    Id value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      idBetween(
+    Id lower,
+    Id upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'id',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      isSettledEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isSettled',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      noteIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'note',
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      noteIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'note',
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      noteEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'note',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      noteGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'note',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      noteLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'note',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      noteBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'note',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      noteStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'note',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      noteEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'note',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      noteContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'note',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      noteMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'note',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      noteIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'note',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      noteIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'note',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      remainingEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'remaining',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      remainingGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'remaining',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      remainingLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'remaining',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      remainingBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'remaining',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      statusEqualTo(TransactionStatus value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'status',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      statusGreaterThan(
+    TransactionStatus value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'status',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      statusLessThan(
+    TransactionStatus value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'status',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      statusBetween(
+    TransactionStatus lower,
+    TransactionStatus upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'status',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      typeEqualTo(TransactionType value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'type',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      typeGreaterThan(
+    TransactionType value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'type',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      typeLessThan(
+    TransactionType value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'type',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      typeBetween(
+    TransactionType lower,
+    TransactionType upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'type',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -332,6 +971,33 @@ extension DebtTransactionQueryLinks
 
 extension DebtTransactionQuerySortBy
     on QueryBuilder<DebtTransaction, DebtTransaction, QSortBy> {
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy> sortByAmount() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'amount', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy>
+      sortByAmountDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'amount', Sort.desc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy>
+      sortByAmountPaid() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'amountPaid', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy>
+      sortByAmountPaidDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'amountPaid', Sort.desc);
+    });
+  }
+
   QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy> sortByDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'date', Sort.asc);
@@ -345,19 +1011,113 @@ extension DebtTransactionQuerySortBy
     });
   }
 
-  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy>
-      sortByAmount() {
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy> sortByDueDate() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'amount', Sort.asc);
+      return query.addSortBy(r'dueDate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy>
+      sortByDueDateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dueDate', Sort.desc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy>
+      sortByIsSettled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isSettled', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy>
+      sortByIsSettledDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isSettled', Sort.desc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy> sortByNote() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'note', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy>
+      sortByNoteDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'note', Sort.desc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy>
+      sortByRemaining() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'remaining', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy>
+      sortByRemainingDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'remaining', Sort.desc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy> sortByStatus() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'status', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy>
+      sortByStatusDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'status', Sort.desc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy> sortByType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy>
+      sortByTypeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.desc);
     });
   }
 }
 
 extension DebtTransactionQuerySortThenBy
     on QueryBuilder<DebtTransaction, DebtTransaction, QSortThenBy> {
-  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy> thenById() {
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy> thenByAmount() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'id', Sort.asc);
+      return query.addSortBy(r'amount', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy>
+      thenByAmountDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'amount', Sort.desc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy>
+      thenByAmountPaid() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'amountPaid', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy>
+      thenByAmountPaidDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'amountPaid', Sort.desc);
     });
   }
 
@@ -366,10 +1126,168 @@ extension DebtTransactionQuerySortThenBy
       return query.addSortBy(r'date', Sort.asc);
     });
   }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy>
+      thenByDateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'date', Sort.desc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy> thenByDueDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dueDate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy>
+      thenByDueDateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dueDate', Sort.desc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy> thenById() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy> thenByIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.desc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy>
+      thenByIsSettled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isSettled', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy>
+      thenByIsSettledDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isSettled', Sort.desc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy> thenByNote() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'note', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy>
+      thenByNoteDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'note', Sort.desc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy>
+      thenByRemaining() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'remaining', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy>
+      thenByRemainingDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'remaining', Sort.desc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy> thenByStatus() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'status', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy>
+      thenByStatusDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'status', Sort.desc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy> thenByType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterSortBy>
+      thenByTypeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.desc);
+    });
+  }
 }
 
 extension DebtTransactionQueryWhereDistinct
-    on QueryBuilder<DebtTransaction, DebtTransaction, QDistinct> {}
+    on QueryBuilder<DebtTransaction, DebtTransaction, QDistinct> {
+  QueryBuilder<DebtTransaction, DebtTransaction, QDistinct> distinctByAmount() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'amount');
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QDistinct>
+      distinctByAmountPaid() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'amountPaid');
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QDistinct> distinctByDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'date');
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QDistinct>
+      distinctByDueDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'dueDate');
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QDistinct>
+      distinctByIsSettled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isSettled');
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QDistinct> distinctByNote(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'note', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QDistinct>
+      distinctByRemaining() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'remaining');
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QDistinct> distinctByStatus() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'status');
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QDistinct> distinctByType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'type');
+    });
+  }
+}
 
 extension DebtTransactionQueryProperty
     on QueryBuilder<DebtTransaction, DebtTransaction, QQueryProperty> {
@@ -385,8 +1303,7 @@ extension DebtTransactionQueryProperty
     });
   }
 
-  QueryBuilder<DebtTransaction, double, QQueryOperations>
-      amountPaidProperty() {
+  QueryBuilder<DebtTransaction, double, QQueryOperations> amountPaidProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'amountPaid');
     });
@@ -395,6 +1312,30 @@ extension DebtTransactionQueryProperty
   QueryBuilder<DebtTransaction, DateTime, QQueryOperations> dateProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'date');
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DateTime?, QQueryOperations> dueDateProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'dueDate');
+    });
+  }
+
+  QueryBuilder<DebtTransaction, bool, QQueryOperations> isSettledProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isSettled');
+    });
+  }
+
+  QueryBuilder<DebtTransaction, String?, QQueryOperations> noteProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'note');
+    });
+  }
+
+  QueryBuilder<DebtTransaction, double, QQueryOperations> remainingProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'remaining');
     });
   }
 

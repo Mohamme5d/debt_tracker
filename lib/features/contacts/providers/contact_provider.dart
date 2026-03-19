@@ -24,7 +24,7 @@ Future<List<Person>> savedPersons(Ref ref) async {
 @riverpod
 Future<Person> getOrCreatePerson(
   Ref ref, {
-  required String name,
+  required String personName,
   String? phoneNumber,
   bool isFromContacts = false,
 }) async {
@@ -42,13 +42,13 @@ Future<Person> getOrCreatePerson(
   // Try by exact name
   final existingByName = await db.persons
       .filter()
-      .nameEqualTo(name)
+      .nameEqualTo(personName)
       .findFirst();
   if (existingByName != null) return existingByName;
 
   // Create new
   final person = Person()
-    ..name = name
+    ..name = personName
     ..phoneNumber = phoneNumber
     ..isFromContacts = isFromContacts;
 

@@ -27,7 +27,7 @@ class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         color: colorScheme.surfaceContainer,
@@ -91,7 +91,7 @@ class AppTheme {
       colorScheme: base,
       useMaterial3: true,
       textTheme: GoogleFonts.cairoTextTheme(),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         color: Colors.white,
