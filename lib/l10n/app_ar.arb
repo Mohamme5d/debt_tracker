@@ -85,5 +85,97 @@
         "type": "String"
       }
     }
-  }
+  },
+  "transactions": "المعاملات",
+  "allTransactions": "جميع المعاملات",
+  "goodStatus": "أنت في وضع جيد",
+  "badStatus": "لديك ديون متأخرة",
+  "debtVsLoan": "الديون مقابل القروض",
+  "monthlyOverview": "نظرة شهرية",
+  "balanceTrend": "اتجاه الرصيد",
+  "thisMonth": "هذا الشهر",
+  "all": "الكل",
+  "security": "الأمان",
+  "biometricAuth": "المصادقة البيومترية",
+  "biometricSubtitle": "استخدم بصمة الإصبع أو بصمة الوجه للفتح",
+  "passcode": "رمز القفل",
+  "passcodeSubtitle": "تعيين رمز PIN مكون من 6 أرقام",
+  "autoLock": "القفل التلقائي",
+  "immediately": "فوراً",
+  "after1Min": "بعد دقيقة واحدة",
+  "after5Min": "بعد 5 دقائق",
+  "after1Hour": "بعد ساعة",
+  "never": "أبداً",
+  "importBackup": "استيراد النسخة الاحتياطية",
+  "importBackupSubtitle": "استعادة البيانات من ملف نسخ احتياطي",
+  "importFromGoogleDrive": "استيراد من Google Drive",
+  "importFromLocalFile": "استيراد من ملف محلي",
+  "importSuccess": "تم استيراد البيانات بنجاح",
+  "importFailed": "فشل الاستيراد",
+  "backupSync": "النسخ الاحتياطي والمزامنة",
+  "icloudBackup": "نسخ احتياطي على iCloud",
+  "icloudSubtitle": "حفظ البيانات على iCloud",
+  "googleDriveBackup": "نسخ احتياطي على Google Drive",
+  "googleDriveSubtitle": "حفظ البيانات على Google Drive",
+  "localBackup": "نسخ احتياطي محلي",
+  "localBackupSubtitle": "حفظ النسخة الاحتياطية على الجهاز",
+  "lastBackup": "آخر نسخ احتياطي: {date}",
+  "@lastBackup": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "neverBackedUp": "لم يتم النسخ الاحتياطي بعد",
+  "dataExport": "تصدير البيانات",
+  "exportPdf": "تصدير إلى PDF",
+  "exportPdfSubtitle": "إنشاء تقرير PDF",
+  "exportByPerson": "تصدير حسب الشخص",
+  "exportByDate": "تصدير حسب الفترة",
+  "app": "التطبيق",
+  "theme": "المظهر",
+  "lightTheme": "فاتح",
+  "darkTheme": "داكن",
+  "systemTheme": "النظام",
+  "currency": "العملة",
+  "appVersion": "إصدار التطبيق",
+  "useBiometric": "استخدم بصمة الإصبع",
+  "enterPasscode": "أدخل الرمز السري",
+  "setPasscode": "تعيين الرمز السري",
+  "confirmPasscode": "تأكيد الرمز السري",
+  "wrongPasscode": "رمز سري خاطئ",
+  "passcodeMismatch": "الرموز السرية غير متطابقة",
+  "passcodeSet": "تم تعيين الرمز السري بنجاح",
+  "passcodeRemoved": "تم إزالة الرمز السري",
+  "biometricEnabled": "تم تفعيل المصادقة البيومترية",
+  "biometricDisabled": "تم تعطيل المصادقة البيومترية",
+  "biometricNotAvailable": "المصادقة البيومترية غير متاحة",
+  "unlockApp": "فتح التطبيق",
+  "backupSuccess": "تم النسخ الاحتياطي بنجاح",
+  "backupFailed": "فشل النسخ الاحتياطي",
+  "restoreSuccess": "تم الاستعادة بنجاح",
+  "restoreFailed": "فشل الاستعادة",
+  "exportAll": "تصدير الكل",
+  "exportActiveOnly": "تصدير النشطة فقط",
+  "filterByPerson": "تصفية حسب الشخص",
+  "dateRange": "نطاق التاريخ",
+  "generateReport": "إنشاء التقرير",
+  "reportTitle": "تقرير الديون والقروض",
+  "noData": "لا توجد بيانات",
+  "greeting": "مرحباً!",
+  "summary": "الملخص",
+  "startDate": "تاريخ البداية",
+  "endDate": "تاريخ النهاية",
+  "status": "الحالة",
+  "allPersons": "جميع الأشخاص",
+  "transactionsFor": "معاملات {name}",
+  "@transactionsFor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutApp": "عن التطبيق"
 }

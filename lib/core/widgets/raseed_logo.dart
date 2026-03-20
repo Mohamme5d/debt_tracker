@@ -11,11 +11,6 @@ class RaseedLogo extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
-        ),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF2563EB).withValues(alpha: 0.4),
@@ -24,16 +19,12 @@ class RaseedLogo extends StatelessWidget {
           ),
         ],
       ),
-      child: Center(
-        child: Text(
-          '\u0631',
-          style: TextStyle(
-            fontFamily: 'Cairo',
-            fontSize: size * 0.5,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-            height: 1,
-          ),
+      child: ClipOval(
+        child: Image.asset(
+          'assets/images/logo.png',
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
         ),
       ),
     );

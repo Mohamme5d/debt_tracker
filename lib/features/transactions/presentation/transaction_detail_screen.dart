@@ -101,13 +101,13 @@ class _TransactionDetailScreenState
             backgroundColor: AppTheme.backgroundDark,
             title: Text(person?.name ?? ''),
             actions: [
-              if (!isSettled)
-                PopupMenuButton(
-                  color: AppTheme.surfaceDark,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  itemBuilder: (context) => [
+              PopupMenuButton(
+                color: AppTheme.surfaceDark,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                itemBuilder: (context) => [
+                  if (!isSettled)
                     PopupMenuItem(
                       value: 'settle',
                       child: Row(
@@ -120,37 +120,37 @@ class _TransactionDetailScreenState
                         ],
                       ),
                     ),
-                    PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          const Icon(Icons.delete_outline,
-                              size: 20, color: AppTheme.debtColor),
-                          const SizedBox(width: 8),
-                          Text(l10n.delete,
-                              style:
-                                  const TextStyle(color: AppTheme.debtColor)),
-                        ],
-                      ),
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.delete_outline,
+                            size: 20, color: AppTheme.debtColor),
+                        const SizedBox(width: 8),
+                        Text(l10n.delete,
+                            style:
+                                const TextStyle(color: AppTheme.debtColor)),
+                      ],
                     ),
-                  ],
-                  onSelected: (value) async {
-                    if (value == 'settle') {
+                  ),
+                ],
+                onSelected: (value) async {
+                  if (value == 'settle') {
+                    await ref.read(
+                      markAsSettledProvider(widget.transactionId).future,
+                    );
+                  } else if (value == 'delete') {
+                    final confirmed = await _confirmDelete(context, l10n);
+                    if (confirmed && context.mounted) {
                       await ref.read(
-                        markAsSettledProvider(widget.transactionId).future,
+                        deleteTransactionProvider(widget.transactionId)
+                            .future,
                       );
-                    } else if (value == 'delete') {
-                      final confirmed = await _confirmDelete(context, l10n);
-                      if (confirmed && context.mounted) {
-                        await ref.read(
-                          deleteTransactionProvider(widget.transactionId)
-                              .future,
-                        );
-                        if (context.mounted) context.pop();
-                      }
+                      if (context.mounted) context.pop();
                     }
-                  },
-                ),
+                  }
+                },
+              ),
             ],
           ),
           body: ListView(

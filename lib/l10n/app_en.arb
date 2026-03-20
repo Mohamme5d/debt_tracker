@@ -85,5 +85,97 @@
         "type": "String"
       }
     }
-  }
+  },
+  "transactions": "Transactions",
+  "allTransactions": "All Transactions",
+  "goodStatus": "You're in good shape",
+  "badStatus": "You have outstanding debts",
+  "debtVsLoan": "Debt vs Loan",
+  "monthlyOverview": "Monthly Overview",
+  "balanceTrend": "Balance Trend",
+  "thisMonth": "This Month",
+  "all": "All",
+  "security": "Security",
+  "biometricAuth": "Biometric Authentication",
+  "biometricSubtitle": "Use fingerprint or Face ID to unlock",
+  "passcode": "Passcode Lock",
+  "passcodeSubtitle": "Set a 6-digit PIN code",
+  "autoLock": "Auto-Lock",
+  "immediately": "Immediately",
+  "after1Min": "After 1 minute",
+  "after5Min": "After 5 minutes",
+  "after1Hour": "After 1 hour",
+  "never": "Never",
+  "importBackup": "Import Backup",
+  "importBackupSubtitle": "Restore data from a backup file",
+  "importFromGoogleDrive": "Import from Google Drive",
+  "importFromLocalFile": "Import from Local File",
+  "importSuccess": "Data imported successfully",
+  "importFailed": "Import failed",
+  "backupSync": "Backup & Sync",
+  "icloudBackup": "iCloud Backup",
+  "icloudSubtitle": "Backup data to iCloud",
+  "googleDriveBackup": "Google Drive Backup",
+  "googleDriveSubtitle": "Backup data to Google Drive",
+  "localBackup": "Local Backup",
+  "localBackupSubtitle": "Save backup to device",
+  "lastBackup": "Last backup: {date}",
+  "@lastBackup": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "neverBackedUp": "Never backed up",
+  "dataExport": "Data Export",
+  "exportPdf": "Export to PDF",
+  "exportPdfSubtitle": "Generate PDF report",
+  "exportByPerson": "Export by Person",
+  "exportByDate": "Export by Date Range",
+  "app": "App",
+  "theme": "Theme",
+  "lightTheme": "Light",
+  "darkTheme": "Dark",
+  "systemTheme": "System",
+  "currency": "Currency",
+  "appVersion": "App Version",
+  "useBiometric": "Use Biometric",
+  "enterPasscode": "Enter Passcode",
+  "setPasscode": "Set Passcode",
+  "confirmPasscode": "Confirm Passcode",
+  "wrongPasscode": "Wrong Passcode",
+  "passcodeMismatch": "Passcodes do not match",
+  "passcodeSet": "Passcode set successfully",
+  "passcodeRemoved": "Passcode removed",
+  "biometricEnabled": "Biometric authentication enabled",
+  "biometricDisabled": "Biometric authentication disabled",
+  "biometricNotAvailable": "Biometric authentication not available",
+  "unlockApp": "Unlock App",
+  "backupSuccess": "Backup completed successfully",
+  "backupFailed": "Backup failed",
+  "restoreSuccess": "Restore completed successfully",
+  "restoreFailed": "Restore failed",
+  "exportAll": "Export All",
+  "exportActiveOnly": "Export Active Only",
+  "filterByPerson": "Filter by Person",
+  "dateRange": "Date Range",
+  "generateReport": "Generate Report",
+  "reportTitle": "Debts & Loans Report",
+  "noData": "No data available",
+  "greeting": "Hello!",
+  "summary": "Summary",
+  "startDate": "Start Date",
+  "endDate": "End Date",
+  "status": "Status",
+  "allPersons": "All Persons",
+  "transactionsFor": "Transactions for {name}",
+  "@transactionsFor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutApp": "About"
 }

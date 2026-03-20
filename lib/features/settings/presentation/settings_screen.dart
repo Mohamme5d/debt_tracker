@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:raseed/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
@@ -100,13 +101,59 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                       final notifier =
                           ref.read(securityNotifierProvider.notifier);
                       if (val) {
-                        final available =
-                            await notifier.isBiometricAvailable();
+                        // Must have passcode enabled first
+                        if (!security.isPasscodeEnabled) {
+                          if (!mounted) return;
+                          final shouldSetup = await showDialog<bool>(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              backgroundColor: AppTheme.surfaceDark,
+                              title: Text(
+                                isArabic ? 'مطلوب رمز المرور' : 'Passcode Required',
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                              content: Text(
+                                isArabic
+                                    ? 'يجب تفعيل رمز المرور أولاً قبل تفعيل بصمة الإصبع أو الوجه.\n\nهل تريد إعداد رمز المرور الآن؟'
+                                    : 'You must enable a passcode first before activating biometric authentication.\n\nWould you like to set up a passcode now?',
+                                style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx, false),
+                                  child: Text(
+                                    isArabic ? 'إلغاء' : 'Cancel',
+                                    style: const TextStyle(color: AppTheme.primaryColor),
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx, true),
+                                  child: Text(
+                                    isArabic ? 'إعداد رمز المرور' : 'Set Passcode',
+                                    style: const TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (shouldSetup == true && mounted) {
+                            await Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const PasscodeScreen(mode: PasscodeMode.set),
+                              ),
+                            );
+                            // After passcode setup, check again and enable biometric if passcode is now set
+                            final updatedSecurity = ref.read(securityNotifierProvider);
+                            if (!updatedSecurity.isPasscodeEnabled) return;
+                            // Fall through to enable biometric
+                          } else {
+                            return;
+                          }
+                        }
+                        final available = await notifier.isBiometricAvailable();
                         if (!available && mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content:
-                                    Text(l10n.biometricNotAvailable)),
+                            SnackBar(content: Text(l10n.biometricNotAvailable)),
                           );
                           return;
                         }
@@ -123,7 +170,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                     title: l10n.passcode,
                     subtitle: l10n.passcodeSubtitle,
                     value: security.isPasscodeEnabled,
-                    onChanged: (val) {
+                    onChanged: (val) async {
                       if (val) {
                         Navigator.of(context).push(
                           MaterialPageRoute(
@@ -133,12 +180,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                           ),
                         );
                       } else {
-                        ref
-                            .read(securityNotifierProvider.notifier)
-                            .removePasscode();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(l10n.passcodeRemoved)),
-                        );
+                        final notifier = ref.read(securityNotifierProvider.notifier);
+                        // If biometric is enabled, disable it first since passcode is required
+                        if (security.isBiometricEnabled) {
+                          await notifier.toggleBiometric(false);
+                        }
+                        await notifier.removePasscode();
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(l10n.passcodeRemoved)),
+                          );
+                        }
                       }
                     },
                   ),
@@ -199,6 +251,37 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
           ),
           const SizedBox(height: 24),
 
+          // Import / Restore Section
+          _stagger(
+              4, _sectionHeader(l10n.importBackup, Icons.restore_rounded)),
+          _stagger(
+            5,
+            GradientCard(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Column(
+                children: [
+                  _actionTile(
+                    icon: Icons.add_to_drive_rounded,
+                    title: l10n.importFromGoogleDrive,
+                    subtitle: l10n.importBackupSubtitle,
+                    onTap: _restoreFromGoogleDrive,
+                    isLoading: _isBackingUp,
+                  ),
+                  const Divider(
+                      height: 1, indent: 56, color: AppTheme.borderDark),
+                  _actionTile(
+                    icon: Icons.folder_open_rounded,
+                    title: l10n.importFromLocalFile,
+                    subtitle: l10n.importBackupSubtitle,
+                    onTap: _restoreFromLocalFile,
+                    isLoading: _isBackingUp,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+
           // Data Export Section
           _stagger(
               4,
@@ -241,6 +324,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                     icon: Icons.info_outline_rounded,
                     title: l10n.appVersion,
                     trailing: '1.0.0',
+                  ),
+                  const Divider(height: 1, indent: 56, color: AppTheme.borderDark),
+                  ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withOpacity(0.12),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.info_outline_rounded, color: AppTheme.primaryColor, size: 20),
+                    ),
+                    title: Text(l10n.aboutApp, style: const TextStyle(color: Colors.white)),
+                    trailing: const Icon(Icons.chevron_right_rounded, color: AppTheme.borderDark),
+                    onTap: () => context.push('/about'),
                   ),
                 ],
               ),
@@ -342,6 +439,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       0: l10n.immediately,
       60: l10n.after1Min,
       300: l10n.after5Min,
+      3600: l10n.after1Hour,
+      -1: l10n.never,
     };
 
     return ListTile(
@@ -458,6 +557,46 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     } catch (e) {
       messenger.showSnackBar(
         SnackBar(content: Text('${l10n.backupFailed}: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isBackingUp = false);
+    }
+  }
+
+  Future<void> _restoreFromGoogleDrive() async {
+    setState(() => _isBackingUp = true);
+    final l10n = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final db = ref.read(isarProvider);
+      final service = BackupService(db);
+      await service.restoreFromGoogleDrive();
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.importSuccess)),
+      );
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('${l10n.importFailed}: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isBackingUp = false);
+    }
+  }
+
+  Future<void> _restoreFromLocalFile() async {
+    setState(() => _isBackingUp = true);
+    final l10n = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final db = ref.read(isarProvider);
+      final service = BackupService(db);
+      await service.restoreFromLocalFile();
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.importSuccess)),
+      );
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('${l10n.importFailed}: $e')),
       );
     } finally {
       if (mounted) setState(() => _isBackingUp = false);

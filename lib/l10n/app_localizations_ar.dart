@@ -303,6 +303,30 @@ class AppLocalizationsAr extends AppLocalizations {
   String get after5Min => 'بعد 5 دقائق';
 
   @override
+  String get after1Hour => 'بعد ساعة';
+
+  @override
+  String get never => 'أبداً';
+
+  @override
+  String get importBackup => 'استيراد النسخة الاحتياطية';
+
+  @override
+  String get importBackupSubtitle => 'استعادة البيانات من ملف نسخ احتياطي';
+
+  @override
+  String get importFromGoogleDrive => 'استيراد من Google Drive';
+
+  @override
+  String get importFromLocalFile => 'استيراد من ملف محلي';
+
+  @override
+  String get importSuccess => 'تم استيراد البيانات بنجاح';
+
+  @override
+  String get importFailed => 'فشل الاستيراد';
+
+  @override
   String get backupSync => 'النسخ الاحتياطي والمزامنة';
 
   @override
@@ -458,4 +482,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String transactionsFor(String name) {
     return 'معاملات $name';
   }
+
+  @override
+  String get aboutApp => 'عن التطبيق';
 }

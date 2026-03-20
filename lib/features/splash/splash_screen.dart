@@ -122,14 +122,34 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   child: child,
                 );
               },
-              child: Text(
-                '\u062A\u062A\u0628\u0639 \u062F\u064A\u0648\u0646\u0643 \u0628\u0630\u0643\u0627\u0621',
-                style: TextStyle(
-                  fontFamily: 'Cairo',
-                  fontSize: 15,
-                  color: Colors.white.withValues(alpha: 0.4),
-                  letterSpacing: 0.5,
-                ),
+              child: Builder(
+                builder: (context) {
+                  final isAr = Localizations.localeOf(context).languageCode == 'ar';
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        isAr ? 'تتبع ديونك بذكاء وثقة' : 'Track debts smartly & confidently',
+                        style: TextStyle(
+                          fontFamily: 'Cairo',
+                          fontSize: 15,
+                          color: Colors.white.withValues(alpha: 0.4),
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        isAr ? 'سريع • آمن • بسيط' : 'Fast • Secure • Simple',
+                        style: TextStyle(
+                          fontFamily: 'Cairo',
+                          fontSize: 13,
+                          color: Colors.white.withValues(alpha: 0.3),
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
           ],
@@ -144,7 +164,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             child: child,
           ),
           child: Text(
-            '\u0645\u0646 \u0631\u0635\u064A\u062F \u0628\u062B\u0642\u0629',
+            'v1.0.0 • رصيد',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: 'Cairo',

@@ -305,6 +305,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get after5Min => 'After 5 minutes';
 
   @override
+  String get after1Hour => 'After 1 hour';
+
+  @override
+  String get never => 'Never';
+
+  @override
+  String get importBackup => 'Import Backup';
+
+  @override
+  String get importBackupSubtitle => 'Restore data from a backup file';
+
+  @override
+  String get importFromGoogleDrive => 'Import from Google Drive';
+
+  @override
+  String get importFromLocalFile => 'Import from Local File';
+
+  @override
+  String get importSuccess => 'Data imported successfully';
+
+  @override
+  String get importFailed => 'Import failed';
+
+  @override
   String get backupSync => 'Backup & Sync';
 
   @override
@@ -460,4 +484,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String transactionsFor(String name) {
     return 'Transactions for $name';
   }
+
+  @override
+  String get aboutApp => 'About';
 }

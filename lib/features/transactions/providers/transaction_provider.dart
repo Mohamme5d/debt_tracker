@@ -9,6 +9,7 @@ import '../../../core/db/models/debt_transaction.dart';
 import '../../../core/db/models/enums.dart';
 import '../../../core/db/models/payment.dart';
 import '../../../core/db/models/person.dart';
+import '../../../core/db/transaction_utils.dart';
 import '../usecases/add_transaction.dart';
 import '../usecases/record_payment.dart';
 
@@ -28,16 +29,17 @@ RecordPaymentUseCase recordPaymentUseCase(Ref ref) {
 Stream<DebtTransaction?> transactionById(Ref ref, int id) async* {
   final db = ref.watch(isarProvider);
 
-  DebtTransaction? load() {
+  Future<DebtTransaction?> load() async {
+    await syncOverdueStatus(db);
     final tx = db.debtTransactions.getSync(id);
     tx?.person.loadSync();
     return tx;
   }
 
-  yield load();
+  yield await load();
 
   await for (final _ in db.debtTransactions.watchObjectLazy(id)) {
-    yield load();
+    yield await load();
   }
 }
 
@@ -64,7 +66,8 @@ Stream<List<Payment>> paymentsForTransaction(Ref ref, int transactionId) async* 
 Stream<List<DebtTransaction>> transactionsForPerson(Ref ref, int personId) async* {
   final db = ref.watch(isarProvider);
 
-  List<DebtTransaction> load() {
+  Future<List<DebtTransaction>> load() async {
+    await syncOverdueStatus(db);
     final all = db.debtTransactions.where().findAllSync();
     final filtered = <DebtTransaction>[];
     for (final tx in all) {
@@ -77,10 +80,10 @@ Stream<List<DebtTransaction>> transactionsForPerson(Ref ref, int personId) async
     return filtered;
   }
 
-  yield load();
+  yield await load();
 
   await for (final _ in db.debtTransactions.watchLazy()) {
-    yield load();
+    yield await load();
   }
 }
 

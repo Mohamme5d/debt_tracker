@@ -680,6 +680,54 @@ abstract class AppLocalizations {
   /// **'After 5 minutes'**
   String get after5Min;
 
+  /// No description provided for @after1Hour.
+  ///
+  /// In en, this message translates to:
+  /// **'After 1 hour'**
+  String get after1Hour;
+
+  /// No description provided for @never.
+  ///
+  /// In en, this message translates to:
+  /// **'Never'**
+  String get never;
+
+  /// No description provided for @importBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Backup'**
+  String get importBackup;
+
+  /// No description provided for @importBackupSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore data from a backup file'**
+  String get importBackupSubtitle;
+
+  /// No description provided for @importFromGoogleDrive.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from Google Drive'**
+  String get importFromGoogleDrive;
+
+  /// No description provided for @importFromLocalFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from Local File'**
+  String get importFromLocalFile;
+
+  /// No description provided for @importSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Data imported successfully'**
+  String get importSuccess;
+
+  /// No description provided for @importFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Import failed'**
+  String get importFailed;
+
   /// No description provided for @backupSync.
   ///
   /// In en, this message translates to:
@@ -985,6 +1033,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Transactions for {name}'**
   String transactionsFor(String name);
+
+  /// No description provided for @aboutApp.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get aboutApp;
 }
 
 class _AppLocalizationsDelegate

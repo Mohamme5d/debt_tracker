@@ -10,6 +10,7 @@ import '../features/transactions/presentation/add_transaction_screen.dart';
 import '../features/transactions/presentation/all_transactions_screen.dart';
 import '../features/transactions/presentation/person_transactions_screen.dart';
 import '../features/transactions/presentation/transaction_detail_screen.dart';
+import '../features/about/presentation/about_screen.dart';
 import '../features/security/presentation/lock_screen.dart';
 import '../shared/widgets/app_shell.dart';
 
@@ -151,6 +152,20 @@ GoRouter router(Ref ref) {
             },
           );
         },
+      ),
+      GoRoute(
+        path: '/about',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const AboutScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            final slideAnimation = Tween<Offset>(
+              begin: const Offset(1, 0),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
+            return SlideTransition(position: slideAnimation, child: FadeTransition(opacity: animation, child: child));
+          },
+        ),
       ),
       GoRoute(
         path: '/lock',

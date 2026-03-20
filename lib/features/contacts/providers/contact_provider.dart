@@ -10,9 +10,13 @@ part 'contact_provider.g.dart';
 
 @riverpod
 Future<List<fc.Contact>> phoneContacts(Ref ref) async {
-  final hasPermission = await fc.FlutterContacts.requestPermission();
-  if (!hasPermission) return [];
-  return fc.FlutterContacts.getContacts(withProperties: true);
+  try {
+    final hasPermission = await fc.FlutterContacts.requestPermission();
+    if (!hasPermission) return [];
+    return await fc.FlutterContacts.getContacts(withProperties: true);
+  } catch (_) {
+    return [];
+  }
 }
 
 @riverpod

@@ -192,7 +192,7 @@ class _ContactPickerWidgetState extends ConsumerState<ContactPickerWidget>
                   final filtered = _query.isEmpty
                       ? contacts
                       : contacts
-                          .where((c) => c.displayName
+                          .where((c) => (c.displayName ?? '')
                               .toLowerCase()
                               .contains(_query.toLowerCase()))
                           .toList();
@@ -219,9 +219,9 @@ class _ContactPickerWidgetState extends ConsumerState<ContactPickerWidget>
                               index: entry.key + 5,
                               child: ListTile(
                                 leading: _GradientAvatar(
-                                    name: entry.value.displayName),
+                                    name: entry.value.displayName ?? ''),
                                 title: Text(
-                                  entry.value.displayName,
+                                  entry.value.displayName ?? '',
                                   style: const TextStyle(
                                       color: Colors.white),
                                 ),
@@ -310,7 +310,7 @@ class _ContactPickerWidgetState extends ConsumerState<ContactPickerWidget>
 
     final person = await ref.read(
       getOrCreatePersonProvider(
-        personName: contact.displayName,
+        personName: contact.displayName ?? '',
         phoneNumber: phone,
         isFromContacts: true,
       ).future,

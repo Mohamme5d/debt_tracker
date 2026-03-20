@@ -8,6 +8,7 @@ import '../../../core/db/isar_service.dart';
 import '../../../core/db/models/debt_transaction.dart';
 import '../../../core/db/models/enums.dart';
 import '../../../core/db/models/person.dart';
+import '../../../core/db/transaction_utils.dart';
 
 part 'dashboard_provider.g.dart';
 
@@ -58,6 +59,9 @@ Stream<DashboardSummary> dashboardSummary(Ref ref) async* {
 }
 
 Future<DashboardSummary> _computeSummary(Isar db) async {
+  // Ensure overdue status is up-to-date before computing balances
+  await syncOverdueStatus(db);
+
   final allTransactions = await db.debtTransactions.where().findAll();
 
   final activeTransactions = allTransactions
@@ -77,14 +81,6 @@ Future<DashboardSummary> _computeSummary(Isar db) async {
     if (person == null) continue;
 
     final remaining = tx.remaining;
-
-    // Check overdue
-    if (tx.dueDate != null &&
-        tx.dueDate!.isBefore(DateTime.now()) &&
-        tx.status == TransactionStatus.active) {
-      tx.status = TransactionStatus.overdue;
-      await db.writeTxn(() => db.debtTransactions.put(tx));
-    }
 
     if (tx.type == TransactionType.debt) {
       totalIOwe += remaining;

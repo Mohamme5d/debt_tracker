@@ -53,13 +53,15 @@ class _DebtTrackerAppState extends ConsumerState<DebtTrackerApp> {
 
   void _onPause() {
     final security = ref.read(securityNotifierProvider);
-    if (security.hasAnySecurity && security.autoLockSeconds == 0) {
-      ref.read(securityNotifierProvider.notifier).lock();
+    // -1 = never lock
+    if (security.hasAnySecurity && security.autoLockSeconds != -1) {
+      if (security.autoLockSeconds == 0) {
+        ref.read(securityNotifierProvider.notifier).lock();
+      }
     }
   }
 
   void _onInactive() {
-    // Lock immediately on inactive if auto-lock is set to immediate
     final security = ref.read(securityNotifierProvider);
     if (security.hasAnySecurity && security.autoLockSeconds == 0) {
       ref.read(securityNotifierProvider.notifier).lock();
