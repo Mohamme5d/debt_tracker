@@ -3,6 +3,7 @@ import 'package:isar/isar.dart';
 import '../../../core/db/models/debt_transaction.dart';
 import '../../../core/db/models/enums.dart';
 import '../../../core/db/models/person.dart';
+import '../../../core/services/notification_service.dart';
 
 class EditTransactionUseCase {
   final Isar _isar;
@@ -49,5 +50,11 @@ class EditTransactionUseCase {
       transaction.person.value = person;
       await transaction.person.save();
     });
+
+    // Reschedule notification with updated due date
+    try {
+      await NotificationService.cancel(transaction.id);
+      await NotificationService.scheduleTransactionDue(transaction);
+    } catch (_) {}
   }
 }

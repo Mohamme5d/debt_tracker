@@ -10,6 +10,7 @@ import '../../../core/db/models/enums.dart';
 import '../../../core/db/models/payment.dart';
 import '../../../core/db/models/person.dart';
 import '../../../core/db/transaction_utils.dart';
+import '../../../core/services/notification_service.dart';
 import '../usecases/add_transaction.dart';
 import '../usecases/edit_transaction.dart';
 import '../usecases/record_payment.dart';
@@ -110,6 +111,8 @@ Future<void> markAsSettled(Ref ref, int transactionId) async {
     tx.amountPaid = tx.amount;
     await db.debtTransactions.put(tx);
   });
+
+  try { await NotificationService.cancel(transactionId); } catch (_) {}
 }
 
 @riverpod
@@ -128,4 +131,6 @@ Future<void> deleteTransaction(Ref ref, int transactionId) async {
     }
     await db.debtTransactions.delete(transactionId);
   });
+
+  try { await NotificationService.cancel(transactionId); } catch (_) {}
 }

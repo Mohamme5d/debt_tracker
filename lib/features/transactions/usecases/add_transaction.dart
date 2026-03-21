@@ -3,6 +3,7 @@ import 'package:isar/isar.dart';
 import '../../../core/db/models/debt_transaction.dart';
 import '../../../core/db/models/enums.dart';
 import '../../../core/db/models/person.dart';
+import '../../../core/services/notification_service.dart';
 
 class AddTransactionUseCase {
   final Isar _isar;
@@ -41,6 +42,11 @@ class AddTransactionUseCase {
       tx.person.value = person;
       await tx.person.save();
     });
+
+    try {
+      await NotificationService.scheduleTransactionDue(tx);
+    } catch (_) {}
+
 
     return tx;
   }

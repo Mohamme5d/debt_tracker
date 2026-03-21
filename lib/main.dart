@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:isar/isar.dart';
 import 'package:raseed/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app/router.dart';
 import 'app/theme.dart';
 import 'core/db/isar_service.dart';
+import 'core/db/models/debt_transaction.dart';
+import 'core/db/models/enums.dart';
 import 'core/providers/locale_provider.dart';
+import 'core/services/notification_service.dart';
 import 'features/security/presentation/lock_screen.dart';
 import 'features/security/providers/security_provider.dart';
 
@@ -23,6 +27,27 @@ Future<void> main() async {
       child: const DebtTrackerApp(),
     ),
   );
+
+  // Initialize notifications in the background after UI is shown
+  _initNotifications(isarService);
+}
+
+void _initNotifications(IsarService isarService) async {
+  try {
+    await NotificationService.initialize();
+    final transactions =
+        isarService.isar.debtTransactions.where().findAllSync();
+    for (final tx in transactions) {
+      tx.person.loadSync();
+    }
+    final pending = transactions
+        .where((tx) =>
+            tx.dueDate != null && tx.status != TransactionStatus.settled)
+        .toList();
+    await NotificationService.syncAll(pending);
+  } catch (_) {
+    // Notification errors must never crash the app
+  }
 }
 
 class DebtTrackerApp extends ConsumerStatefulWidget {
