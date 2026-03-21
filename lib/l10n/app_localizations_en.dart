@@ -487,4 +487,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutApp => 'About';
+
+  @override
+  String get paymentDate => 'Payment Date';
+
+  @override
+  String get editTransaction => 'Edit Transaction';
+
+  @override
+  String get edit => 'Edit';
 }

@@ -24,6 +24,8 @@ class DebtTransaction {
 
   String? note;
 
+  List<String> attachmentPaths = [];
+
   @enumerated
   TransactionStatus status = TransactionStatus.active;
 

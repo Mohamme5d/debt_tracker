@@ -10,6 +10,7 @@ import '../features/transactions/presentation/add_transaction_screen.dart';
 import '../features/transactions/presentation/all_transactions_screen.dart';
 import '../features/transactions/presentation/person_transactions_screen.dart';
 import '../features/transactions/presentation/transaction_detail_screen.dart';
+import '../features/transactions/presentation/edit_transaction_screen.dart';
 import '../features/about/presentation/about_screen.dart';
 import '../features/security/presentation/lock_screen.dart';
 import '../shared/widgets/app_shell.dart';
@@ -136,6 +137,30 @@ GoRouter router(Ref ref) {
           return CustomTransitionPage(
             key: state.pageKey,
             child: AddTransactionScreen(personId: personId),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              final slideAnimation = Tween<Offset>(
+                begin: const Offset(0, 1),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+              ));
+              return SlideTransition(
+                position: slideAnimation,
+                child: child,
+              );
+            },
+          );
+        },
+      ),
+      GoRoute(
+        path: '/edit-transaction/:id',
+        pageBuilder: (context, state) {
+          final id = int.parse(state.pathParameters['id']!);
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: EditTransactionScreen(transactionId: id),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
               final slideAnimation = Tween<Offset>(

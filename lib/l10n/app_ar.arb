@@ -177,5 +177,8 @@
       }
     }
   },
-  "aboutApp": "عن التطبيق"
+  "aboutApp": "عن التطبيق",
+  "paymentDate": "تاريخ الدفعة",
+  "editTransaction": "تعديل المعاملة",
+  "edit": "تعديل"
 }

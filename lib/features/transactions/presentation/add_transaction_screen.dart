@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import '../../../app/theme.dart';
 import '../../../core/db/models/enums.dart';
 import '../../../core/db/models/person.dart';
+import '../../../core/widgets/attachment_section.dart';
 import '../../contacts/presentation/contact_picker_widget.dart';
 import '../providers/transaction_provider.dart';
 
@@ -34,6 +35,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
   bool _isLoading = false;
   bool _isSaved = false;
   String? _personError;
+  final List<String> _attachmentPaths = [];
 
   late final AnimationController _entranceController;
   late final AnimationController _typeColorController;
@@ -310,9 +312,20 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
             ),
             const SizedBox(height: 32),
 
-            // Save button — index 6
+            // Attachments — index 6
             _buildStaggeredChild(
               6,
+              AttachmentSection(
+                paths: _attachmentPaths,
+                onAdd: (p) => setState(() => _attachmentPaths.add(p)),
+                onRemove: (p) => setState(() => _attachmentPaths.remove(p)),
+              ),
+            ),
+            const SizedBox(height: 32),
+
+            // Save button — index 7
+            _buildStaggeredChild(
+              7,
               _buildSaveButton(l10n, typeColor),
             ),
             const SizedBox(height: 32),
@@ -562,6 +575,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
         date: _date,
         dueDate: _dueDate,
         note: note,
+        attachmentPaths: _attachmentPaths,
       );
 
       if (mounted) {

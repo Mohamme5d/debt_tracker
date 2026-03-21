@@ -11,6 +11,7 @@ import '../../../core/db/models/payment.dart';
 import '../../../core/db/models/person.dart';
 import '../../../core/db/transaction_utils.dart';
 import '../usecases/add_transaction.dart';
+import '../usecases/edit_transaction.dart';
 import '../usecases/record_payment.dart';
 
 part 'transaction_provider.g.dart';
@@ -23,6 +24,11 @@ AddTransactionUseCase addTransactionUseCase(Ref ref) {
 @riverpod
 RecordPaymentUseCase recordPaymentUseCase(Ref ref) {
   return RecordPaymentUseCase(ref.watch(isarProvider));
+}
+
+@riverpod
+EditTransactionUseCase editTransactionUseCase(Ref ref) {
+  return EditTransactionUseCase(ref.watch(isarProvider));
 }
 
 @riverpod

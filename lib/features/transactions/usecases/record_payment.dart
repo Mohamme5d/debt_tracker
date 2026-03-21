@@ -13,6 +13,8 @@ class RecordPaymentUseCase {
     required DebtTransaction transaction,
     required double amount,
     String? note,
+    DateTime? date,
+    List<String>? attachmentPaths,
   }) async {
     if (amount <= 0) {
       throw ArgumentError('Payment amount must be greater than zero');
@@ -26,8 +28,9 @@ class RecordPaymentUseCase {
 
     final payment = Payment()
       ..amount = amount
-      ..date = DateTime.now()
-      ..note = note;
+      ..date = date ?? DateTime.now()
+      ..note = note
+      ..attachmentPaths = attachmentPaths ?? [];
 
     await _isar.writeTxn(() async {
       await _isar.payments.put(payment);

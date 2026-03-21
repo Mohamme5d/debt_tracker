@@ -27,39 +27,44 @@ const DebtTransactionSchema = CollectionSchema(
       name: r'amountPaid',
       type: IsarType.double,
     ),
-    r'date': PropertySchema(
+    r'attachmentPaths': PropertySchema(
       id: 2,
+      name: r'attachmentPaths',
+      type: IsarType.stringList,
+    ),
+    r'date': PropertySchema(
+      id: 3,
       name: r'date',
       type: IsarType.dateTime,
     ),
     r'dueDate': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'dueDate',
       type: IsarType.dateTime,
     ),
     r'isSettled': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'isSettled',
       type: IsarType.bool,
     ),
     r'note': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'note',
       type: IsarType.string,
     ),
     r'remaining': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'remaining',
       type: IsarType.double,
     ),
     r'status': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'status',
       type: IsarType.byte,
       enumMap: _DebtTransactionstatusEnumValueMap,
     ),
     r'type': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'type',
       type: IsarType.byte,
       enumMap: _DebtTransactiontypeEnumValueMap,
@@ -92,6 +97,13 @@ int _debtTransactionEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 + object.attachmentPaths.length * 3;
+  {
+    for (var i = 0; i < object.attachmentPaths.length; i++) {
+      final value = object.attachmentPaths[i];
+      bytesCount += value.length * 3;
+    }
+  }
   {
     final value = object.note;
     if (value != null) {
@@ -109,13 +121,14 @@ void _debtTransactionSerialize(
 ) {
   writer.writeDouble(offsets[0], object.amount);
   writer.writeDouble(offsets[1], object.amountPaid);
-  writer.writeDateTime(offsets[2], object.date);
-  writer.writeDateTime(offsets[3], object.dueDate);
-  writer.writeBool(offsets[4], object.isSettled);
-  writer.writeString(offsets[5], object.note);
-  writer.writeDouble(offsets[6], object.remaining);
-  writer.writeByte(offsets[7], object.status.index);
-  writer.writeByte(offsets[8], object.type.index);
+  writer.writeStringList(offsets[2], object.attachmentPaths);
+  writer.writeDateTime(offsets[3], object.date);
+  writer.writeDateTime(offsets[4], object.dueDate);
+  writer.writeBool(offsets[5], object.isSettled);
+  writer.writeString(offsets[6], object.note);
+  writer.writeDouble(offsets[7], object.remaining);
+  writer.writeByte(offsets[8], object.status.index);
+  writer.writeByte(offsets[9], object.type.index);
 }
 
 DebtTransaction _debtTransactionDeserialize(
@@ -127,15 +140,16 @@ DebtTransaction _debtTransactionDeserialize(
   final object = DebtTransaction();
   object.amount = reader.readDouble(offsets[0]);
   object.amountPaid = reader.readDouble(offsets[1]);
-  object.date = reader.readDateTime(offsets[2]);
-  object.dueDate = reader.readDateTimeOrNull(offsets[3]);
+  object.attachmentPaths = reader.readStringList(offsets[2]) ?? [];
+  object.date = reader.readDateTime(offsets[3]);
+  object.dueDate = reader.readDateTimeOrNull(offsets[4]);
   object.id = id;
-  object.note = reader.readStringOrNull(offsets[5]);
+  object.note = reader.readStringOrNull(offsets[6]);
   object.status =
-      _DebtTransactionstatusValueEnumMap[reader.readByteOrNull(offsets[7])] ??
+      _DebtTransactionstatusValueEnumMap[reader.readByteOrNull(offsets[8])] ??
           TransactionStatus.active;
   object.type =
-      _DebtTransactiontypeValueEnumMap[reader.readByteOrNull(offsets[8])] ??
+      _DebtTransactiontypeValueEnumMap[reader.readByteOrNull(offsets[9])] ??
           TransactionType.debt;
   return object;
 }
@@ -152,20 +166,22 @@ P _debtTransactionDeserializeProp<P>(
     case 1:
       return (reader.readDouble(offset)) as P;
     case 2:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readStringList(offset) ?? []) as P;
     case 3:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readDateTime(offset)) as P;
     case 4:
-      return (reader.readBool(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 5:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 6:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 7:
+      return (reader.readDouble(offset)) as P;
+    case 8:
       return (_DebtTransactionstatusValueEnumMap[
               reader.readByteOrNull(offset)] ??
           TransactionStatus.active) as P;
-    case 8:
+    case 9:
       return (_DebtTransactiontypeValueEnumMap[reader.readByteOrNull(offset)] ??
           TransactionType.debt) as P;
     default:
@@ -417,6 +433,233 @@ extension DebtTransactionQueryFilter
         includeUpper: includeUpper,
         epsilon: epsilon,
       ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      attachmentPathsElementEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'attachmentPaths',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      attachmentPathsElementGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'attachmentPaths',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      attachmentPathsElementLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'attachmentPaths',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      attachmentPathsElementBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'attachmentPaths',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      attachmentPathsElementStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'attachmentPaths',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      attachmentPathsElementEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'attachmentPaths',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      attachmentPathsElementContains(String value,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'attachmentPaths',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      attachmentPathsElementMatches(String pattern,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'attachmentPaths',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      attachmentPathsElementIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'attachmentPaths',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      attachmentPathsElementIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'attachmentPaths',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      attachmentPathsLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'attachmentPaths',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      attachmentPathsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'attachmentPaths',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      attachmentPathsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'attachmentPaths',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      attachmentPathsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'attachmentPaths',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      attachmentPathsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'attachmentPaths',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<DebtTransaction, DebtTransaction, QAfterFilterCondition>
+      attachmentPathsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'attachmentPaths',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
     });
   }
 
@@ -1242,6 +1485,13 @@ extension DebtTransactionQueryWhereDistinct
     });
   }
 
+  QueryBuilder<DebtTransaction, DebtTransaction, QDistinct>
+      distinctByAttachmentPaths() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'attachmentPaths');
+    });
+  }
+
   QueryBuilder<DebtTransaction, DebtTransaction, QDistinct> distinctByDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'date');
@@ -1306,6 +1556,13 @@ extension DebtTransactionQueryProperty
   QueryBuilder<DebtTransaction, double, QQueryOperations> amountPaidProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'amountPaid');
+    });
+  }
+
+  QueryBuilder<DebtTransaction, List<String>, QQueryOperations>
+      attachmentPathsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'attachmentPaths');
     });
   }
 

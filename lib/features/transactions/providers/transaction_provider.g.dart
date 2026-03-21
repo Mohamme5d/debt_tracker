@@ -41,7 +41,25 @@ final recordPaymentUseCaseProvider =
 );
 
 typedef RecordPaymentUseCaseRef = AutoDisposeProviderRef<RecordPaymentUseCase>;
-String _$transactionByIdHash() => r'84bd1dc769793aecce5826fa018cabb864a83596';
+String _$editTransactionUseCaseHash() =>
+    r'abd0eb9dd731f5e10176dfea156a3b915276ef93';
+
+/// See also [editTransactionUseCase].
+@ProviderFor(editTransactionUseCase)
+final editTransactionUseCaseProvider =
+    AutoDisposeProvider<EditTransactionUseCase>.internal(
+  editTransactionUseCase,
+  name: r'editTransactionUseCaseProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$editTransactionUseCaseHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef EditTransactionUseCaseRef
+    = AutoDisposeProviderRef<EditTransactionUseCase>;
+String _$transactionByIdHash() => r'103ec2297087929171e3d15556aee381415cf933';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -326,7 +344,7 @@ class _PaymentsForTransactionProviderElement
 }
 
 String _$transactionsForPersonHash() =>
-    r'9d359b065493a76b7722b493a5466570796d0606';
+    r'3fd32a6c6d051d09265f919df16e59813b96e397';
 
 /// See also [transactionsForPerson].
 @ProviderFor(transactionsForPerson)

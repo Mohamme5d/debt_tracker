@@ -51,6 +51,10 @@
 	<string>This app needs access to your contacts to let you pick a person for a debt or loan.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Use Face ID to unlock Raseed and protect your financial data.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Raseed needs camera access to attach photos to transactions and payments.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Raseed needs photo library access to attach images to transactions and payments.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

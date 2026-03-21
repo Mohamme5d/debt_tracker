@@ -3,10 +3,11 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:encrypt/encrypt.dart' as enc;
+import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:http/http.dart' as http;
+import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -32,7 +33,6 @@ class BackupService {
   Future<enc.Key> _getEncryptionKey() async {
     String? stored = await _secureStorage.read(key: _encKeyStorageKey);
     if (stored == null) {
-      // Generate a random 256-bit key and persist it
       final random = Random.secure();
       final bytes = List<int>.generate(32, (_) => random.nextInt(256));
       stored = base64Url.encode(bytes);
@@ -46,7 +46,6 @@ class BackupService {
     final iv = enc.IV.fromSecureRandom(16);
     final encrypter = enc.Encrypter(enc.AES(key, mode: enc.AESMode.cbc));
     final encrypted = encrypter.encrypt(plainText, iv: iv);
-    // Store IV + ciphertext as base64, separated by ":"
     return '${base64Url.encode(iv.bytes)}:${encrypted.base64}';
   }
 
@@ -90,8 +89,24 @@ class BackupService {
       await p.transaction.load();
     }
 
+    // Collect all attachment files and encode as base64
+    final attachmentsMap = <String, String>{};
+    final allPaths = [
+      ...transactions.expand((tx) => tx.attachmentPaths),
+      ...payments.expand((p) => p.attachmentPaths),
+    ].toSet();
+
+    for (final path in allPaths) {
+      final file = File(path);
+      if (file.existsSync()) {
+        final filename = path.split('/').last;
+        final bytes = await file.readAsBytes();
+        attachmentsMap[filename] = base64.encode(bytes);
+      }
+    }
+
     final data = {
-      'version': 1,
+      'version': 2,
       'exportedAt': DateTime.now().toIso8601String(),
       'persons': persons
           .map((p) => {
@@ -112,6 +127,8 @@ class BackupService {
                 'dueDate': tx.dueDate?.toIso8601String(),
                 'note': tx.note,
                 'status': tx.status.index,
+                'attachmentFilenames':
+                    tx.attachmentPaths.map((p) => p.split('/').last).toList(),
               })
           .toList(),
       'payments': payments
@@ -121,8 +138,11 @@ class BackupService {
                 'amount': p.amount,
                 'date': p.date.toIso8601String(),
                 'note': p.note,
+                'attachmentFilenames':
+                    p.attachmentPaths.map((p) => p.split('/').last).toList(),
               })
           .toList(),
+      'attachments': attachmentsMap,
     };
 
     return const JsonEncoder.withIndent('  ').convert(data);
@@ -130,12 +150,19 @@ class BackupService {
 
   // ── Local backup ─────────────────────────────────────────────────────────
 
+  String _backupFilename() {
+    final now = DateTime.now();
+    final dt =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}'
+        '_${now.hour.toString().padLeft(2, '0')}-${now.minute.toString().padLeft(2, '0')}-${now.second.toString().padLeft(2, '0')}';
+    return 'Raseed_Backup-$dt.rsd';
+  }
+
   Future<void> backupToiCloud() async {
     final json = await exportJson();
     final encrypted = await _encrypt(json);
     final dir = await getApplicationDocumentsDirectory();
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final file = File('${dir.path}/raseed_backup_$timestamp.rsd');
+    final file = File('${dir.path}/${_backupFilename()}');
     await file.writeAsString(encrypted);
     await _saveBackupDate(_lastBackupKey);
   }
@@ -146,8 +173,7 @@ class BackupService {
     final result = await FilePicker.platform.getDirectoryPath();
     if (result == null) return;
 
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final file = File('$result/raseed_backup_$timestamp.rsd');
+    final file = File('$result/${_backupFilename()}');
     await file.writeAsString(encrypted);
     await _saveBackupDate(_lastBackupKey);
   }
@@ -168,108 +194,89 @@ class BackupService {
 
   // ── Google Drive ──────────────────────────────────────────────────────────
 
-  Future<GoogleSignInAccount?> _signInGoogle() async {
-    final googleSignIn = GoogleSignIn(
-      scopes: [
-        'https://www.googleapis.com/auth/drive.file',
-      ],
+  Future<GoogleSignIn> _buildGoogleSignIn() async {
+    return GoogleSignIn(
+      scopes: [drive.DriveApi.driveFileScope],
     );
-    // Sign out first to force account picker
-    await googleSignIn.signOut();
-    return googleSignIn.signIn();
+  }
+
+  Future<drive.DriveApi?> _signInAndGetDriveApi() async {
+    final googleSignIn = await _buildGoogleSignIn();
+    await googleSignIn.signOut(); // force account picker
+    final account = await googleSignIn.signIn();
+    if (account == null) return null;
+
+    final httpClient = await googleSignIn.authenticatedClient();
+    if (httpClient == null) throw Exception('Could not get authenticated client');
+
+    return drive.DriveApi(httpClient);
   }
 
   Future<void> backupToGoogleDrive() async {
-    final account = await _signInGoogle();
-    if (account == null) return;
-
-    final auth = await account.authentication;
-    final accessToken = auth.accessToken;
-    if (accessToken == null) throw Exception('Could not get access token');
+    final driveApi = await _signInAndGetDriveApi();
+    if (driveApi == null) return; // user cancelled
 
     final json = await exportJson();
     final encrypted = await _encrypt(json);
-    final bytes = utf8.encode(encrypted);
-    final filename =
-        'raseed_backup_${DateTime.now().millisecondsSinceEpoch}.rsd';
+    final filename = _backupFilename();
 
-    // Multipart upload to Google Drive
-    final boundary = '-------314159265358979323846';
-    final body = '--$boundary\r\n'
-        'Content-Type: application/json; charset=UTF-8\r\n\r\n'
-        '{"name":"$filename","mimeType":"text/plain"}\r\n'
-        '--$boundary\r\n'
-        'Content-Type: text/plain\r\n\r\n'
-        '${utf8.decode(bytes)}\r\n'
-        '--$boundary--';
+    final contentBytes = utf8.encode(encrypted);
+    final fileMetadata = drive.File()
+      ..name = filename
+      ..mimeType = 'text/plain';
 
-    final response = await http.post(
-      Uri.parse(
-          'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart'),
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-        'Content-Type': 'multipart/related; boundary="$boundary"',
-      },
-      body: body,
+    final media = drive.Media(
+      Stream.value(contentBytes),
+      contentBytes.length,
+      contentType: 'text/plain',
     );
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      await _saveBackupDate(_lastGoogleBackupKey);
-    } else {
-      throw Exception(
-          'Google Drive upload failed: ${response.statusCode}\n${response.body}');
-    }
+    await driveApi.files.create(
+      fileMetadata,
+      uploadMedia: media,
+    );
+
+    await _saveBackupDate(_lastGoogleBackupKey);
   }
 
   Future<void> restoreFromGoogleDrive() async {
-    final account = await _signInGoogle();
-    if (account == null) return;
+    final driveApi = await _signInAndGetDriveApi();
+    if (driveApi == null) return; // user cancelled
 
-    final auth = await account.authentication;
-    final accessToken = auth.accessToken;
-    if (accessToken == null) throw Exception('Could not get access token');
-
-    // List raseed backup files, newest first
-    final listResponse = await http.get(
-      Uri.parse(
-          "https://www.googleapis.com/drive/v3/files?q=name+contains+'raseed_backup'&orderBy=modifiedTime+desc&pageSize=1&fields=files(id,name)"),
-      headers: {'Authorization': 'Bearer $accessToken'},
+    // List most recent raseed backup file
+    final fileList = await driveApi.files.list(
+      q: "name contains 'Raseed_Backup'",
+      orderBy: 'modifiedTime desc',
+      pageSize: 1,
+      $fields: 'files(id,name)',
     );
 
-    if (listResponse.statusCode != 200) {
-      throw Exception('Failed to list Google Drive files: ${listResponse.body}');
-    }
-
-    final listData = jsonDecode(listResponse.body);
-    final files = listData['files'] as List;
-    if (files.isEmpty) {
+    final files = fileList.files;
+    if (files == null || files.isEmpty) {
       throw Exception('No backup files found on Google Drive');
     }
 
-    final fileId = files.first['id'] as String;
-    final downloadResponse = await http.get(
-      Uri.parse(
-          'https://www.googleapis.com/drive/v3/files/$fileId?alt=media'),
-      headers: {'Authorization': 'Bearer $accessToken'},
-    );
+    final fileId = files.first.id!;
+    final response = await driveApi.files.get(
+      fileId,
+      downloadOptions: drive.DownloadOptions.fullMedia,
+    ) as drive.Media;
 
-    if (downloadResponse.statusCode != 200) {
-      throw Exception('Failed to download backup from Google Drive');
-    }
+    final bytes = <int>[];
+    await response.stream.forEach(bytes.addAll);
+    final content = utf8.decode(bytes);
 
-    final content = downloadResponse.body;
-    final json = await _tryDecryptOrRaw(content);
-    await _restoreFromJson(json);
+    final jsonStr = await _tryDecryptOrRaw(content);
+    await _restoreFromJson(jsonStr);
   }
 
   // ── Restore helpers ───────────────────────────────────────────────────────
 
-  /// Try to decrypt; if it fails, treat as plain JSON (legacy backup).
   Future<String> _tryDecryptOrRaw(String content) async {
     try {
       return await _decrypt(content);
     } catch (_) {
-      return content; // plain JSON fallback
+      return content;
     }
   }
 
@@ -285,6 +292,24 @@ class BackupService {
     final personsData = data['persons'] as List;
     final transactionsData = data['transactions'] as List;
     final paymentsData = data['payments'] as List;
+
+    // Restore attachment image files
+    final attachmentsMap =
+        (data['attachments'] as Map<String, dynamic>? ?? {})
+            .cast<String, String>();
+
+    final dir = await getApplicationDocumentsDirectory();
+    final attachDir = Directory('${dir.path}/attachments');
+    if (!attachDir.existsSync()) attachDir.createSync(recursive: true);
+
+    // filename → restored absolute path
+    final restoredPaths = <String, String>{};
+    for (final entry in attachmentsMap.entries) {
+      final filename = entry.key;
+      final destPath = '${attachDir.path}/$filename';
+      await File(destPath).writeAsBytes(base64.decode(entry.value));
+      restoredPaths[filename] = destPath;
+    }
 
     final personIdMap = <int, Person>{};
 
@@ -303,6 +328,12 @@ class BackupService {
 
     await _isar.writeTxn(() async {
       for (final td in transactionsData) {
+        final filenames = (td['attachmentFilenames'] as List?)
+                ?.cast<String>() ??
+            [];
+        final paths =
+            filenames.map((f) => restoredPaths[f] ?? '').where((p) => p.isNotEmpty).toList();
+
         final tx = DebtTransaction()
           ..type = TransactionType.values[td['type'] as int]
           ..amount = (td['amount'] as num).toDouble()
@@ -312,7 +343,8 @@ class BackupService {
               ? DateTime.parse(td['dueDate'] as String)
               : null
           ..note = td['note'] as String?
-          ..status = TransactionStatus.values[td['status'] as int];
+          ..status = TransactionStatus.values[td['status'] as int]
+          ..attachmentPaths = paths;
 
         await _isar.debtTransactions.put(tx);
 
@@ -328,10 +360,17 @@ class BackupService {
 
     await _isar.writeTxn(() async {
       for (final pd in paymentsData) {
+        final filenames = (pd['attachmentFilenames'] as List?)
+                ?.cast<String>() ??
+            [];
+        final paths =
+            filenames.map((f) => restoredPaths[f] ?? '').where((p) => p.isNotEmpty).toList();
+
         final payment = Payment()
           ..amount = (pd['amount'] as num).toDouble()
           ..date = DateTime.parse(pd['date'] as String)
-          ..note = pd['note'] as String?;
+          ..note = pd['note'] as String?
+          ..attachmentPaths = paths;
 
         await _isar.payments.put(payment);
 

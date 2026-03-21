@@ -485,4 +485,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get aboutApp => 'عن التطبيق';
+
+  @override
+  String get paymentDate => 'تاريخ الدفعة';
+
+  @override
+  String get editTransaction => 'تعديل المعاملة';
+
+  @override
+  String get edit => 'تعديل';
 }

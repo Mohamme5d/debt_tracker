@@ -6,7 +6,7 @@ part of 'security_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$securityNotifierHash() => r'f72df6faff79ab3ee0713ef0bcb6126156c575f9';
+String _$securityNotifierHash() => r'681ec7c7e5634c98a5a0113b41227d122800a31a';
 
 /// See also [SecurityNotifier].
 @ProviderFor(SecurityNotifier)

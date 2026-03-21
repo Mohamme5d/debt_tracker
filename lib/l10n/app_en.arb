@@ -177,5 +177,8 @@
       }
     }
   },
-  "aboutApp": "About"
+  "aboutApp": "About",
+  "paymentDate": "Payment Date",
+  "editTransaction": "Edit Transaction",
+  "edit": "Edit"
 }

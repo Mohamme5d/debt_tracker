@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:raseed/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +10,7 @@ import '../../../app/theme.dart';
 import '../../../core/db/models/enums.dart';
 import '../../../core/db/models/payment.dart';
 import '../../../core/widgets/amount_display.dart';
+import '../../../core/widgets/attachment_section.dart';
 import '../../../shared/widgets/gradient_card.dart';
 import '../providers/transaction_provider.dart';
 
@@ -107,6 +110,18 @@ class _TransactionDetailScreenState
                   borderRadius: BorderRadius.circular(12),
                 ),
                 itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.edit_rounded, size: 20,
+                            color: Colors.white),
+                        const SizedBox(width: 8),
+                        Text(l10n.edit,
+                            style: const TextStyle(color: Colors.white)),
+                      ],
+                    ),
+                  ),
                   if (!isSettled)
                     PopupMenuItem(
                       value: 'settle',
@@ -135,7 +150,9 @@ class _TransactionDetailScreenState
                   ),
                 ],
                 onSelected: (value) async {
-                  if (value == 'settle') {
+                  if (value == 'edit') {
+                    context.push('/edit-transaction/${widget.transactionId}');
+                  } else if (value == 'settle') {
                     await ref.read(
                       markAsSettledProvider(widget.transactionId).future,
                     );
@@ -320,6 +337,70 @@ class _TransactionDetailScreenState
                                 ),
                               ),
                             ],
+                          ),
+                        ],
+                        if (tx.attachmentPaths.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          Divider(color: AppTheme.borderDark.withOpacity(0.5)),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Icon(Icons.attach_file_rounded,
+                                  size: 14,
+                                  color: Colors.white.withOpacity(0.4)),
+                              const SizedBox(width: 6),
+                              Text(
+                                Localizations.localeOf(context).languageCode == 'ar'
+                                    ? 'المرفقات'
+                                    : 'Attachments',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.white.withOpacity(0.5),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: tx.attachmentPaths.map((p) => Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: GestureDetector(
+                                  onTap: () => Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => Scaffold(
+                                        backgroundColor: Colors.black,
+                                        appBar: AppBar(
+                                          backgroundColor: Colors.black,
+                                          iconTheme: const IconThemeData(color: Colors.white),
+                                        ),
+                                        body: Center(
+                                          child: InteractiveViewer(
+                                            child: Image.file(File(p)),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: File(p).existsSync()
+                                        ? Image.file(File(p),
+                                            width: 72,
+                                            height: 72,
+                                            fit: BoxFit.cover)
+                                        : Container(
+                                            width: 72,
+                                            height: 72,
+                                            color: AppTheme.surfaceDark,
+                                            child: Icon(Icons.broken_image_rounded,
+                                                color: Colors.white.withOpacity(0.3)),
+                                          ),
+                                  ),
+                                ),
+                              )).toList(),
+                            ),
                           ),
                         ],
                         if (isSettled) ...[
@@ -631,124 +712,205 @@ class _TransactionDetailScreenState
     final amountController = TextEditingController();
     final noteController = TextEditingController();
     final formKey = GlobalKey<FormState>();
+    DateTime selectedDate = DateTime.now();
+    final List<String> paymentAttachments = [];
+    final locale = Localizations.localeOf(context);
+    final dateFormat = locale.languageCode == 'ar'
+        ? DateFormat('yyyy/MM/dd', 'ar')
+        : DateFormat('MMM dd, yyyy');
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (sheetContext) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: AppTheme.borderDark,
-                      borderRadius: BorderRadius.circular(2),
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppTheme.borderDark,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  l10n.recordPayment,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    fontSize: 20,
+                  const SizedBox(height: 20),
+                  Text(
+                    l10n.recordPayment,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      fontSize: 20,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '${l10n.remaining}: ${AmountDisplay.format(tx.remaining)}',
-                  style: TextStyle(color: Colors.white.withOpacity(0.5)),
-                ),
-                const SizedBox(height: 20),
-                TextFormField(
-                  controller: amountController,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  autofocus: true,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                  const SizedBox(height: 8),
+                  Text(
+                    '${l10n.remaining}: ${AmountDisplay.format(tx.remaining)}',
+                    style: TextStyle(color: Colors.white.withOpacity(0.5)),
                   ),
-                  decoration: InputDecoration(
-                    labelText: l10n.amount,
-                    prefixIcon: const Icon(Icons.attach_money),
+                  const SizedBox(height: 20),
+                  TextFormField(
+                    controller: amountController,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    autofocus: true,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                    decoration: InputDecoration(
+                      labelText: l10n.amount,
+                      prefixIcon: const Icon(Icons.attach_money),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return l10n.enterAnAmount;
+                      }
+                      final amount = double.tryParse(value);
+                      if (amount == null || amount <= 0) {
+                        return l10n.mustBeGreaterThanZero;
+                      }
+                      if (amount > tx.remaining) {
+                        return '${l10n.cannotExceedRemaining} (${tx.remaining.toStringAsFixed(2)})';
+                      }
+                      return null;
+                    },
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return l10n.enterAnAmount;
-                    }
-                    final amount = double.tryParse(value);
-                    if (amount == null || amount <= 0) {
-                      return l10n.mustBeGreaterThanZero;
-                    }
-                    if (amount > tx.remaining) {
-                      return '${l10n.cannotExceedRemaining} (${tx.remaining.toStringAsFixed(2)})';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: noteController,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    labelText: l10n.paymentNote,
-                    prefixIcon: const Icon(Icons.note_rounded),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () async {
-                      if (!formKey.currentState!.validate()) return;
-
-                      final useCase =
-                          ref.read(recordPaymentUseCaseProvider);
-                      final amount = double.parse(amountController.text);
-                      final note = noteController.text.isEmpty
-                          ? null
-                          : noteController.text;
-
-                      try {
-                        await useCase.execute(
-                          transaction: tx,
-                          amount: amount,
-                          note: note,
-                        );
-                        if (sheetContext.mounted) {
-                          Navigator.pop(sheetContext);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(l10n.paymentAdded)),
-                          );
-                        }
-                      } catch (e) {
-                        if (sheetContext.mounted) {
-                          ScaffoldMessenger.of(sheetContext).showSnackBar(
-                            SnackBar(content: Text('Error: $e')),
-                          );
-                        }
+                  const SizedBox(height: 16),
+                  // Date picker tile
+                  GestureDetector(
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: sheetContext,
+                        initialDate: selectedDate,
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime.now(),
+                        builder: (ctx, child) => Theme(
+                          data: Theme.of(ctx).copyWith(
+                            colorScheme: ColorScheme.dark(
+                              primary: AppTheme.primaryColor,
+                              surface: AppTheme.surfaceDark,
+                            ),
+                          ),
+                          child: child!,
+                        ),
+                      );
+                      if (picked != null) {
+                        setSheetState(() => selectedDate = picked);
                       }
                     },
-                    icon: const Icon(Icons.check_rounded),
-                    label: Text(l10n.save),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 14),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppTheme.borderDark),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.calendar_today_rounded,
+                              color: Colors.white.withOpacity(0.5), size: 20),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                l10n.paymentDate,
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.5),
+                                  fontSize: 12,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                dateFormat.format(selectedDate),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Spacer(),
+                          Icon(Icons.edit_calendar_rounded,
+                              color: AppTheme.primaryColor.withOpacity(0.7),
+                              size: 18),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-              ],
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: noteController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: l10n.paymentNote,
+                      prefixIcon: const Icon(Icons.note_rounded),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  AttachmentSection(
+                    paths: paymentAttachments,
+                    onAdd: (p) =>
+                        setSheetState(() => paymentAttachments.add(p)),
+                    onRemove: (p) =>
+                        setSheetState(() => paymentAttachments.remove(p)),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        if (!formKey.currentState!.validate()) return;
+
+                        final useCase = ref.read(recordPaymentUseCaseProvider);
+                        final amount = double.parse(amountController.text);
+                        final note = noteController.text.isEmpty
+                            ? null
+                            : noteController.text;
+
+                        try {
+                          await useCase.execute(
+                            transaction: tx,
+                            amount: amount,
+                            note: note,
+                            date: selectedDate,
+                            attachmentPaths: paymentAttachments,
+                          );
+                          if (sheetContext.mounted) {
+                            Navigator.pop(sheetContext);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(l10n.paymentAdded)),
+                            );
+                          }
+                        } catch (e) {
+                          if (sheetContext.mounted) {
+                            ScaffoldMessenger.of(sheetContext).showSnackBar(
+                              SnackBar(content: Text('Error: $e')),
+                            );
+                          }
+                        }
+                      },
+                      icon: const Icon(Icons.check_rounded),
+                      label: Text(l10n.save),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ),
             ),
           ),
         ),

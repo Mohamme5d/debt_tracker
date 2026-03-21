@@ -526,18 +526,37 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   Future<void> _backupToGoogleDrive() async {
     setState(() => _isBackingUp = true);
     final l10n = AppLocalizations.of(context)!;
-    final messenger = ScaffoldMessenger.of(context);
     try {
       final db = ref.read(isarProvider);
       final service = BackupService(db);
       await service.backupToGoogleDrive();
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.backupSuccess)),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.backupSuccess)),
+        );
+      }
     } catch (e) {
-      messenger.showSnackBar(
-        SnackBar(content: Text('${l10n.backupFailed}: $e')),
-      );
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            backgroundColor: AppTheme.surfaceDark,
+            title: const Text('Backup Error', style: TextStyle(color: Colors.white)),
+            content: SingleChildScrollView(
+              child: SelectableText(
+                e.toString(),
+                style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 13),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('OK', style: TextStyle(color: AppTheme.primaryColor)),
+              ),
+            ],
+          ),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isBackingUp = false);
     }

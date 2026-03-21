@@ -15,4 +15,6 @@ class Payment {
   DateTime date = DateTime.now();
 
   String? note;
+
+  List<String> attachmentPaths = [];
 }

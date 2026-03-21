@@ -16,6 +16,7 @@ class AddTransactionUseCase {
     required DateTime date,
     DateTime? dueDate,
     String? note,
+    List<String>? attachmentPaths,
   }) async {
     if (amount <= 0) {
       throw ArgumentError('Amount must be greater than zero');
@@ -28,6 +29,7 @@ class AddTransactionUseCase {
       ..date = date
       ..dueDate = dueDate
       ..note = note
+      ..attachmentPaths = attachmentPaths ?? []
       ..status = TransactionStatus.active;
 
     await _isar.writeTxn(() async {
