@@ -1,116 +1,150 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
-import { MatSidenavModule } from '@angular/material/sidenav';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatListModule } from '@angular/material/list';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatBadgeModule } from '@angular/material/badge';
-import { MatMenuModule } from '@angular/material/menu';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../core/services/auth.service';
 import { NotificationService } from '../core/services/notification.service';
 import { ApiService } from '../core/services/api.service';
+import { ToastContainerComponent } from '../shared/toast-container.component';
 
 @Component({
   selector: 'app-shell',
   standalone: true,
   imports: [
     RouterOutlet, RouterLink, RouterLinkActive,
-    MatSidenavModule, MatToolbarModule, MatListModule,
-    MatIconModule, MatButtonModule, MatBadgeModule, MatMenuModule,
-    CommonModule
+    CommonModule, ToastContainerComponent
   ],
   template: `
-    <mat-sidenav-container style="height:100vh">
-      <mat-sidenav mode="side" opened style="width:220px">
-        <mat-toolbar color="primary" style="font-size:1.1rem;min-height:56px">
-          <mat-icon style="margin-right:8px">home_work</mat-icon> Ijari
-        </mat-toolbar>
-        <mat-nav-list>
-          <a mat-list-item routerLink="/dashboard" routerLinkActive="active-link">
-            <mat-icon matListItemIcon>dashboard</mat-icon>
-            <span matListItemTitle>Dashboard</span>
+    <div class="shell-layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <svg width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 3L38 18V38H26V27H14V38H2V18L20 3Z" fill="#2563EB"/>
+            <path d="M20 3L38 18H2L20 3Z" fill="#3B82F6"/>
+            <circle cx="20" cy="28" r="3.5" fill="#0D1B2A" stroke="#F1F5F9" stroke-width="1.5"/>
+            <rect x="19" y="30.5" width="2" height="5" rx="1" fill="#F1F5F9"/>
+            <rect x="21" y="33.5" width="2.5" height="1.5" rx="0.75" fill="#F1F5F9"/>
+          </svg>
+          <div>
+            <div class="sidebar-logo-text">Ijari</div>
+            <div class="sidebar-logo-sub">Rent Management</div>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <a class="nav-link" routerLink="/dashboard" routerLinkActive="active">
+            <span class="material-icons">dashboard</span>
+            Dashboard
           </a>
-          <a mat-list-item routerLink="/apartments" routerLinkActive="active-link">
-            <mat-icon matListItemIcon>apartment</mat-icon>
-            <span matListItemTitle>Apartments</span>
+          <a class="nav-link" routerLink="/apartments" routerLinkActive="active">
+            <span class="material-icons">apartment</span>
+            Apartments
           </a>
-          <a mat-list-item routerLink="/renters" routerLinkActive="active-link">
-            <mat-icon matListItemIcon>people</mat-icon>
-            <span matListItemTitle>Renters</span>
+          <a class="nav-link" routerLink="/renters" routerLinkActive="active">
+            <span class="material-icons">people</span>
+            Renters
           </a>
-          <a mat-list-item routerLink="/payments" routerLinkActive="active-link">
-            <mat-icon matListItemIcon>payments</mat-icon>
-            <span matListItemTitle>Payments</span>
+          <a class="nav-link" routerLink="/payments" routerLinkActive="active">
+            <span class="material-icons">payments</span>
+            Payments
           </a>
-          <a mat-list-item routerLink="/expenses" routerLinkActive="active-link">
-            <mat-icon matListItemIcon>receipt</mat-icon>
-            <span matListItemTitle>Expenses</span>
+          <a class="nav-link" routerLink="/expenses" routerLinkActive="active">
+            <span class="material-icons">receipt</span>
+            Expenses
           </a>
-          <a mat-list-item routerLink="/deposits" routerLinkActive="active-link">
-            <mat-icon matListItemIcon>savings</mat-icon>
-            <span matListItemTitle>Deposits</span>
+          <a class="nav-link" routerLink="/deposits" routerLinkActive="active">
+            <span class="material-icons">savings</span>
+            Deposits
           </a>
+
           @if (isOwner()) {
-            <mat-divider></mat-divider>
-            <a mat-list-item routerLink="/approvals" routerLinkActive="active-link">
-              <mat-icon matListItemIcon
-                [matBadge]="pendingCount() > 0 ? pendingCount().toString() : null"
-                matBadgeColor="warn" matBadgeSize="small">approval</mat-icon>
-              <span matListItemTitle>Approvals</span>
+            <div class="nav-divider"></div>
+            <div class="nav-section-label">Owner</div>
+            <a class="nav-link" routerLink="/approvals" routerLinkActive="active">
+              <span class="material-icons">approval</span>
+              Approvals
+              @if (pendingCount() > 0) {
+                <span class="badge badge-danger" style="margin-left:auto;padding:1px 7px;font-size:10px">
+                  {{ pendingCount() }}
+                </span>
+              }
             </a>
-            <a mat-list-item routerLink="/employees" routerLinkActive="active-link">
-              <mat-icon matListItemIcon>badge</mat-icon>
-              <span matListItemTitle>Employees</span>
+            <a class="nav-link" routerLink="/employees" routerLinkActive="active">
+              <span class="material-icons">badge</span>
+              Employees
             </a>
-            <a mat-list-item routerLink="/reports" routerLinkActive="active-link">
-              <mat-icon matListItemIcon>bar_chart</mat-icon>
-              <span matListItemTitle>Reports</span>
+            <a class="nav-link" routerLink="/reports" routerLinkActive="active">
+              <span class="material-icons">bar_chart</span>
+              Reports
             </a>
           }
-        </mat-nav-list>
-      </mat-sidenav>
+        </nav>
 
-      <mat-sidenav-content>
-        <mat-toolbar color="primary" style="position:sticky;top:0;z-index:100">
-          <span style="flex:1"></span>
-          <button mat-icon-button [matMenuTriggerFor]="notifMenu"
-            [matBadge]="notifCount() > 0 ? notifCount().toString() : null"
-            matBadgeColor="warn" matBadgeSize="small">
-            <mat-icon>notifications</mat-icon>
+        <div class="sidebar-footer">
+          <button class="nav-link" (click)="logout()">
+            <span class="material-icons">logout</span>
+            Logout
           </button>
-          <mat-menu #notifMenu="matMenu">
-            @for (n of notifications(); track n.id) {
-              <button mat-menu-item (click)="markRead(n.id)"
-                [style.font-weight]="n.isRead ? 'normal' : '700'">
-                <span>{{ n.title }}</span>
-              </button>
-            }
-            @if (!notifications().length) {
-              <button mat-menu-item disabled>No notifications</button>
-            }
-          </mat-menu>
-
-          <button mat-button [matMenuTriggerFor]="userMenu">
-            <mat-icon>account_circle</mat-icon>&nbsp;{{ user()?.name }}
-          </button>
-          <mat-menu #userMenu="matMenu">
-            <button mat-menu-item (click)="logout()">
-              <mat-icon>logout</mat-icon> Logout
-            </button>
-          </mat-menu>
-        </mat-toolbar>
-
-        <div style="padding:24px">
-          <router-outlet />
         </div>
-      </mat-sidenav-content>
-    </mat-sidenav-container>
-  `,
-  styles: [`
-    .active-link { background: rgba(63,81,181,0.15) !important; }
-  `]
+      </aside>
+
+      <!-- Main Area -->
+      <div class="shell-main">
+        <!-- Topbar -->
+        <header class="topbar">
+          <span class="topbar-spacer"></span>
+
+          <!-- Notifications -->
+          <div class="dropdown">
+            <button class="btn-icon notif-btn" (click)="notifsOpen.set(!notifsOpen())">
+              <span class="material-icons">notifications</span>
+              @if (notifCount() > 0) {
+                <span class="notif-dot"></span>
+              }
+            </button>
+            @if (notifsOpen()) {
+              <div class="dropdown-menu" style="width:260px">
+                @for (n of notifications(); track n.id) {
+                  <button class="dropdown-item" (click)="markRead(n.id)"
+                    [style.font-weight]="n.isRead ? '400' : '600'">
+                    <span class="material-icons" style="font-size:15px">circle</span>
+                    {{ n.title }}
+                  </button>
+                }
+                @if (!notifications().length) {
+                  <div style="padding:12px 16px;font-size:12px;color:var(--text-secondary)">No notifications</div>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- User Menu -->
+          <div class="dropdown">
+            <button class="btn btn-ghost btn-sm" (click)="userMenuOpen.set(!userMenuOpen())">
+              <span class="material-icons" style="font-size:18px">account_circle</span>
+              {{ user()?.name }}
+              <span class="material-icons" style="font-size:14px">expand_more</span>
+            </button>
+            @if (userMenuOpen()) {
+              <div class="dropdown-menu">
+                <button class="dropdown-item" (click)="logout()">
+                  <span class="material-icons">logout</span>
+                  Logout
+                </button>
+              </div>
+            }
+          </div>
+        </header>
+
+        <!-- Page Content -->
+        <main class="page-content">
+          <router-outlet />
+        </main>
+      </div>
+    </div>
+
+    <app-toast-container />
+  `
 })
 export class AppShellComponent implements OnInit {
   private auth = inject(AuthService);
@@ -118,10 +152,13 @@ export class AppShellComponent implements OnInit {
   private api = inject(ApiService);
 
   user = this.auth.currentUser;
-  isOwner = computed(() => this.auth.isOwner);
+  isOwner = computed(() => this.auth.currentUser()?.role === 'Owner');
   notifications = this.notifService.notifications;
   notifCount = this.notifService.unreadCount;
   pendingCount = signal(0);
+
+  notifsOpen = signal(false);
+  userMenuOpen = signal(false);
 
   ngOnInit() {
     this.notifService.load();
@@ -134,6 +171,7 @@ export class AppShellComponent implements OnInit {
 
   markRead(id: string) {
     this.notifService.markRead(id).subscribe(() => this.notifService.load());
+    this.notifsOpen.set(false);
   }
 
   logout() { this.auth.logout(); }

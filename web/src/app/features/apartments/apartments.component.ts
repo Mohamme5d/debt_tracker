@@ -1,48 +1,47 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
-import { MatTableModule } from '@angular/material/table';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatCardModule } from '@angular/material/card';
+import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
+import { ToastService } from '../../core/services/toast.service';
 import { Apartment } from '../../core/models';
 
 @Component({
   selector: 'apt-form-dialog',
   standalone: true,
-  imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatDialogModule],
+  imports: [ReactiveFormsModule, MatDialogModule, CommonModule],
   template: `
-    <h2 mat-dialog-title>{{ title }}</h2>
-    <mat-dialog-content>
-      <form [formGroup]="form" style="display:flex;flex-direction:column;gap:12px;min-width:320px;padding-top:8px">
-        <mat-form-field appearance="outline">
-          <mat-label>Name *</mat-label>
-          <input matInput formControlName="name">
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Address</mat-label>
-          <input matInput formControlName="address">
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Description</mat-label>
-          <textarea matInput formControlName="description" rows="2"></textarea>
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Notes</mat-label>
-          <textarea matInput formControlName="notes" rows="2"></textarea>
-        </mat-form-field>
+    <div class="modal-header">
+      <span class="modal-title">{{ title }}</span>
+      <button class="btn-icon" mat-dialog-close>
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form [formGroup]="form" style="display:flex;flex-direction:column;gap:0">
+        <div class="form-group">
+          <label class="form-label">Name *</label>
+          <input class="form-control" type="text" formControlName="name" placeholder="Apartment name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Address</label>
+          <input class="form-control" type="text" formControlName="address" placeholder="Street address">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea class="form-control" formControlName="description" rows="2" placeholder="Optional description"></textarea>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Notes</label>
+          <textarea class="form-control" formControlName="notes" rows="2" placeholder="Optional notes"></textarea>
+        </div>
       </form>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button mat-dialog-close>Cancel</button>
-      <button mat-flat-button color="primary" [mat-dialog-close]="form.value" [disabled]="form.invalid">Save</button>
-    </mat-dialog-actions>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" mat-dialog-close>Cancel</button>
+      <button class="btn btn-primary" [mat-dialog-close]="form.value" [disabled]="form.invalid">Save</button>
+    </div>
   `
 })
 export class ApartmentFormDialogComponent {
@@ -58,65 +57,61 @@ export class ApartmentFormDialogComponent {
 @Component({
   selector: 'app-apartments',
   standalone: true,
-  imports: [
-    MatTableModule, MatButtonModule, MatIconModule,
-    MatDialogModule, MatSnackBarModule, MatCardModule, CommonModule,
-    ApartmentFormDialogComponent
-  ],
+  imports: [MatDialogModule, CommonModule, ApartmentFormDialogComponent],
   template: `
     <div class="page-header">
-      <h2 style="margin:0">Apartments</h2>
+      <h2 class="page-title">Apartments</h2>
       @if (isOwner()) {
-        <button mat-flat-button color="primary" (click)="openDialog()">
-          <mat-icon>add</mat-icon> Add Apartment
+        <button class="btn btn-primary" (click)="openDialog()">
+          <span class="material-icons">add</span> Add Apartment
         </button>
       }
     </div>
-    <mat-card>
-      <mat-table [dataSource]="apartments()">
-        <ng-container matColumnDef="name">
-          <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
-          <mat-cell *matCellDef="let a">{{ a.name }}</mat-cell>
-        </ng-container>
-        <ng-container matColumnDef="address">
-          <mat-header-cell *matHeaderCellDef>Address</mat-header-cell>
-          <mat-cell *matCellDef="let a">{{ a.address }}</mat-cell>
-        </ng-container>
-        <ng-container matColumnDef="description">
-          <mat-header-cell *matHeaderCellDef>Description</mat-header-cell>
-          <mat-cell *matCellDef="let a">{{ a.description }}</mat-cell>
-        </ng-container>
-        <ng-container matColumnDef="actions">
-          <mat-header-cell *matHeaderCellDef style="width:100px"></mat-header-cell>
-          <mat-cell *matCellDef="let a">
-            @if (isOwner()) {
-              <button mat-icon-button (click)="openDialog(a)" matTooltip="Edit">
-                <mat-icon>edit</mat-icon>
-              </button>
-              <button mat-icon-button color="warn" (click)="delete(a.id)" matTooltip="Delete">
-                <mat-icon>delete</mat-icon>
-              </button>
-            }
-          </mat-cell>
-        </ng-container>
-        <mat-header-row *matHeaderRowDef="cols"></mat-header-row>
-        <mat-row *matRowDef="let row; columns: cols"></mat-row>
-      </mat-table>
-      @if (!apartments().length) {
-        <p style="text-align:center;padding:24px;color:#888">No apartments yet.</p>
-      }
-    </mat-card>
+
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Address</th>
+            <th>Description</th>
+            @if (isOwner()) { <th style="width:90px"></th> }
+          </tr>
+        </thead>
+        <tbody>
+          @for (a of apartments(); track a.id) {
+            <tr>
+              <td><strong>{{ a.name }}</strong></td>
+              <td>{{ a.address || '—' }}</td>
+              <td>{{ a.description || '—' }}</td>
+              @if (isOwner()) {
+                <td>
+                  <button class="btn-icon" title="Edit" (click)="openDialog(a)">
+                    <span class="material-icons">edit</span>
+                  </button>
+                  <button class="btn-icon danger" title="Delete" (click)="delete(a.id)">
+                    <span class="material-icons">delete</span>
+                  </button>
+                </td>
+              }
+            </tr>
+          }
+          @if (!apartments().length) {
+            <tr><td [colSpan]="isOwner() ? 4 : 3" class="table-empty">No apartments yet.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
   `
 })
 export class ApartmentsComponent implements OnInit {
   private api = inject(ApiService);
   private auth = inject(AuthService);
   private dialog = inject(MatDialog);
-  private snack = inject(MatSnackBar);
+  private toast = inject(ToastService);
 
   apartments = signal<Apartment[]>([]);
   isOwner = signal(this.auth.isOwner);
-  cols = ['name', 'address', 'description', 'actions'];
 
   ngOnInit() { this.load(); }
 
@@ -125,7 +120,10 @@ export class ApartmentsComponent implements OnInit {
   }
 
   openDialog(apt?: Apartment) {
-    const ref = this.dialog.open(ApartmentFormDialogComponent);
+    const ref = this.dialog.open(ApartmentFormDialogComponent, {
+      panelClass: 'dark-dialog',
+      width: '500px'
+    });
     if (apt) {
       ref.componentInstance.title = 'Edit Apartment';
       ref.componentInstance.form.patchValue(apt);
@@ -136,8 +134,8 @@ export class ApartmentsComponent implements OnInit {
         ? this.api.put(`/apartments/${apt.id}`, result)
         : this.api.post('/apartments', result);
       obs.subscribe({
-        next: () => { this.snack.open('Saved successfully', '', { duration: 2000 }); this.load(); },
-        error: e => this.snack.open(e.error?.message || 'Error saving', 'Close', { duration: 3000 })
+        next: () => { this.toast.success('Saved successfully'); this.load(); },
+        error: e => this.toast.error(e.error?.message || 'Error saving')
       });
     });
   }
@@ -146,7 +144,7 @@ export class ApartmentsComponent implements OnInit {
     if (!confirm('Delete this apartment?')) return;
     this.api.delete(`/apartments/${id}`).subscribe({
       next: () => this.load(),
-      error: e => this.snack.open(e.error?.message || 'Delete failed', 'Close', { duration: 3000 })
+      error: e => this.toast.error(e.error?.message || 'Delete failed')
     });
   }
 }

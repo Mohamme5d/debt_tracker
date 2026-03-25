@@ -1,58 +1,63 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatCardModule } from '@angular/material/card';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
+import { ToastService } from '../../../core/services/toast.service';
+import { ToastContainerComponent } from '../../../shared/toast-container.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [
-    ReactiveFormsModule, MatFormFieldModule, MatInputModule,
-    MatButtonModule, MatIconModule, MatCardModule,
-    MatSnackBarModule, MatProgressSpinnerModule, CommonModule, RouterLink
-  ],
+  imports: [ReactiveFormsModule, CommonModule, RouterLink, ToastContainerComponent],
   template: `
-    <div style="display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f5f5f5">
-      <mat-card style="width:400px;padding:32px">
-        <div style="text-align:center;margin-bottom:24px">
-          <mat-icon style="font-size:56px;height:56px;width:56px;color:#3f51b5">home_work</mat-icon>
-          <h1 style="margin:8px 0 4px;font-size:2rem">Ijari</h1>
-          <p style="color:#888;margin:0">Rent Management Platform</p>
+    <div class="auth-page">
+      <div class="auth-card">
+        <div class="auth-logo">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 3L38 18V38H26V27H14V38H2V18L20 3Z" fill="#2563EB"/>
+            <path d="M20 3L38 18H2L20 3Z" fill="#3B82F6"/>
+            <circle cx="20" cy="28" r="3.5" fill="#0D1B2A" stroke="#F1F5F9" stroke-width="1.5"/>
+            <rect x="19" y="30.5" width="2" height="5" rx="1" fill="#F1F5F9"/>
+            <rect x="21" y="33.5" width="2.5" height="1.5" rx="0.75" fill="#F1F5F9"/>
+          </svg>
+          <span class="auth-logo-text">إيجاري / Ijari</span>
         </div>
+        <p class="auth-subtitle">Rent Management Platform</p>
+
         <form [formGroup]="form" (ngSubmit)="login()">
-          <mat-form-field appearance="outline" style="width:100%">
-            <mat-label>Email</mat-label>
-            <input matInput type="email" formControlName="email" autocomplete="email">
-            <mat-icon matSuffix>email</mat-icon>
-          </mat-form-field>
-          <mat-form-field appearance="outline" style="width:100%;margin-top:8px">
-            <mat-label>Password</mat-label>
-            <input matInput [type]="hide ? 'password' : 'text'" formControlName="password" autocomplete="current-password">
-            <button mat-icon-button matSuffix type="button" (click)="hide = !hide">
-              <mat-icon>{{ hide ? 'visibility_off' : 'visibility' }}</mat-icon>
-            </button>
-          </mat-form-field>
-          <button mat-flat-button color="primary" style="width:100%;margin-top:16px;height:44px" type="submit" [disabled]="loading || form.invalid">
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input class="form-control" type="email" formControlName="email" autocomplete="email" placeholder="you@example.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <div style="position:relative">
+              <input class="form-control" [type]="hide ? 'password' : 'text'"
+                formControlName="password" autocomplete="current-password" placeholder="••••••••">
+              <button type="button" class="btn-icon"
+                style="position:absolute;right:6px;top:50%;transform:translateY(-50%)"
+                (click)="hide = !hide">
+                <span class="material-icons" style="font-size:18px">{{ hide ? 'visibility_off' : 'visibility' }}</span>
+              </button>
+            </div>
+          </div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px;height:44px"
+            type="submit" [disabled]="loading || form.invalid">
             @if (loading) {
-              <mat-spinner diameter="22" style="display:inline-block"></mat-spinner>
+              <span class="spinner"></span>
             } @else {
               Sign In
             }
           </button>
         </form>
-        <div style="text-align:center;margin-top:20px">
-          <a routerLink="/register" style="color:#3f51b5;text-decoration:none">New account? Register here</a>
+
+        <div style="text-align:center;margin-top:20px;font-size:13px">
+          <a routerLink="/register">New account? Register here</a>
         </div>
-      </mat-card>
+      </div>
     </div>
+    <app-toast-container />
   `
 })
 export class LoginComponent {
@@ -60,7 +65,12 @@ export class LoginComponent {
   loading = false;
   hide = true;
 
-  constructor(private fb: FormBuilder, private auth: AuthService, private router: Router, private snack: MatSnackBar) {
+  private fb = inject(FormBuilder);
+  private auth = inject(AuthService);
+  private router = inject(Router);
+  private toast = inject(ToastService);
+
+  constructor() {
     this.form = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required]
@@ -74,7 +84,7 @@ export class LoginComponent {
     this.auth.login(email, password).subscribe({
       next: () => this.router.navigate([this.auth.isSuperAdmin ? '/admin/dashboard' : '/dashboard']),
       error: (err) => {
-        this.snack.open(err.error?.message || 'Login failed', 'Close', { duration: 3000 });
+        this.toast.error(err.error?.message || 'Login failed');
         this.loading = false;
       }
     });

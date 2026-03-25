@@ -1,17 +1,7 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatTableModule } from '@angular/material/table';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ApiService } from '../../../core/services/api.service';
 import { AdminTenantListItem } from '../../../core/models';
 import { TenantDetailDialogComponent } from './tenant-detail-dialog.component';
@@ -19,101 +9,80 @@ import { TenantDetailDialogComponent } from './tenant-detail-dialog.component';
 @Component({
   selector: 'app-admin-tenants',
   standalone: true,
-  imports: [
-    CommonModule, FormsModule, RouterLink, MatCardModule, MatTableModule,
-    MatButtonModule, MatIconModule, MatInputModule, MatFormFieldModule,
-    MatChipsModule, MatProgressSpinnerModule, MatTooltipModule, MatDialogModule
-  ],
+  imports: [CommonModule, FormsModule, MatDialogModule],
   template: `
     <div class="page-header">
-      <h2 style="margin:0;font-size:1.4rem;font-weight:700">Tenants Management</h2>
-      <mat-form-field appearance="outline" style="width:280px">
-        <mat-label>Search tenants...</mat-label>
-        <input matInput [(ngModel)]="search" (ngModelChange)="onSearch($event)" />
-        <mat-icon matSuffix>search</mat-icon>
-      </mat-form-field>
+      <h2 class="page-title">Tenants Management</h2>
+      <div class="search-wrap">
+        <span class="material-icons">search</span>
+        <input class="form-control" type="text" [(ngModel)]="search"
+          (ngModelChange)="onSearch($event)" placeholder="Search tenants..."
+          style="width:260px">
+      </div>
     </div>
 
     @if (loading()) {
-      <div style="text-align:center;padding:40px"><mat-spinner diameter="36"></mat-spinner></div>
+      <div style="text-align:center;padding:60px">
+        <span class="spinner spinner-lg"></span>
+      </div>
     } @else {
-      <mat-card>
-        <mat-table [dataSource]="tenants()">
-
-          <ng-container matColumnDef="name">
-            <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
-            <mat-cell *matCellDef="let t">
-              <div>
-                <strong>{{ t.name }}</strong>
-                <div style="font-size:11px;color:#666">{{ t.email }}</div>
-              </div>
-            </mat-cell>
-          </ng-container>
-
-          <ng-container matColumnDef="plan">
-            <mat-header-cell *matHeaderCellDef>Plan</mat-header-cell>
-            <mat-cell *matCellDef="let t">
-              <span class="chip chip-blue">{{ t.plan }}</span>
-            </mat-cell>
-          </ng-container>
-
-          <ng-container matColumnDef="stats">
-            <mat-header-cell *matHeaderCellDef>Resources</mat-header-cell>
-            <mat-cell *matCellDef="let t">
-              <span class="badge">{{ t.userCount }} users</span>
-              <span class="badge ml">{{ t.apartmentCount }} apts</span>
-              <span class="badge ml">{{ t.activeRenterCount }} renters</span>
-            </mat-cell>
-          </ng-container>
-
-          <ng-container matColumnDef="status">
-            <mat-header-cell *matHeaderCellDef>Status</mat-header-cell>
-            <mat-cell *matCellDef="let t">
-              <span class="chip" [class.chip-green]="t.isActive" [class.chip-red]="!t.isActive">
-                {{ t.isActive ? 'Active' : 'Inactive' }}
-              </span>
-            </mat-cell>
-          </ng-container>
-
-          <ng-container matColumnDef="created">
-            <mat-header-cell *matHeaderCellDef>Created</mat-header-cell>
-            <mat-cell *matCellDef="let t">{{ t.createdAt | date:'mediumDate' }}</mat-cell>
-          </ng-container>
-
-          <ng-container matColumnDef="actions">
-            <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
-            <mat-cell *matCellDef="let t">
-              <button mat-icon-button [matTooltip]="'View details'" (click)="viewDetail(t)">
-                <mat-icon>visibility</mat-icon>
-              </button>
-              <button mat-icon-button
-                [matTooltip]="t.isActive ? 'Deactivate' : 'Activate'"
-                [color]="t.isActive ? 'warn' : 'primary'"
-                (click)="toggleStatus(t)">
-                <mat-icon>{{ t.isActive ? 'block' : 'check_circle' }}</mat-icon>
-              </button>
-            </mat-cell>
-          </ng-container>
-
-          <mat-header-row *matHeaderRowDef="cols"></mat-header-row>
-          <mat-row *matRowDef="let row; columns: cols"></mat-row>
-        </mat-table>
-
-        @if (!tenants().length) {
-          <div style="text-align:center;padding:40px;color:#888">No tenants found.</div>
-        }
-      </mat-card>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Plan</th>
+              <th>Resources</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (t of tenants(); track t.id) {
+              <tr>
+                <td>
+                  <div>
+                    <strong>{{ t.name }}</strong>
+                    <div style="font-size:11px;color:var(--text-secondary)">{{ t.email }}</div>
+                  </div>
+                </td>
+                <td>
+                  <span class="badge badge-primary">{{ t.plan }}</span>
+                </td>
+                <td>
+                  <div style="display:flex;gap:4px;flex-wrap:wrap">
+                    <span class="badge badge-neutral">{{ t.userCount }} users</span>
+                    <span class="badge badge-neutral">{{ t.apartmentCount }} apts</span>
+                    <span class="badge badge-neutral">{{ t.activeRenterCount }} renters</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="badge" [class.badge-success]="t.isActive" [class.badge-danger]="!t.isActive">
+                    {{ t.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td style="font-size:12px;color:var(--text-secondary)">{{ t.createdAt | date:'mediumDate' }}</td>
+                <td>
+                  <button class="btn-icon" title="View details" (click)="viewDetail(t)">
+                    <span class="material-icons">visibility</span>
+                  </button>
+                  <button class="btn-icon" title="{{ t.isActive ? 'Deactivate' : 'Activate' }}"
+                    [class.danger]="t.isActive" [class.success]="!t.isActive"
+                    (click)="toggleStatus(t)">
+                    <span class="material-icons">{{ t.isActive ? 'block' : 'check_circle' }}</span>
+                  </button>
+                </td>
+              </tr>
+            }
+            @if (!tenants().length) {
+              <tr><td colspan="6" class="table-empty">No tenants found.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
     }
-  `,
-  styles: [`
-    .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
-    .chip { padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600; }
-    .chip-green { background:#e8f5e9; color:#2e7d32; }
-    .chip-red { background:#ffebee; color:#c62828; }
-    .chip-blue { background:#e3f2fd; color:#1565c0; }
-    .badge { background:#f0f0f0; color:#555; padding:2px 8px; border-radius:12px; font-size:11px; }
-    .ml { margin-left:4px; }
-  `]
+  `
 })
 export class TenantsComponent implements OnInit {
   private api = inject(ApiService);
@@ -122,7 +91,6 @@ export class TenantsComponent implements OnInit {
   tenants = signal<AdminTenantListItem[]>([]);
   loading = signal(true);
   search = '';
-  cols = ['name', 'plan', 'stats', 'status', 'created', 'actions'];
 
   ngOnInit() { this.load(); }
 
@@ -140,7 +108,8 @@ export class TenantsComponent implements OnInit {
 
   viewDetail(t: AdminTenantListItem) {
     const ref = this.dialog.open(TenantDetailDialogComponent, {
-      data: t.id, width: '700px', maxHeight: '90vh'
+      data: t.id, width: '700px', maxHeight: '90vh',
+      panelClass: 'dark-dialog'
     });
     ref.afterClosed().subscribe(() => this.load(this.search));
   }

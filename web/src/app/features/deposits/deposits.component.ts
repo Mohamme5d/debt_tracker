@@ -1,7 +1,4 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
-import { MatTableModule } from '@angular/material/table';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatCardModule } from '@angular/material/card';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../core/services/api.service';
 import { MonthlyDeposit } from '../../core/models';
@@ -9,41 +6,47 @@ import { MonthlyDeposit } from '../../core/models';
 @Component({
   selector: 'app-deposits',
   standalone: true,
-  imports: [MatTableModule, MatChipsModule, MatCardModule, CommonModule],
+  imports: [CommonModule],
   template: `
-    <div class="page-header"><h2 style="margin:0">Monthly Deposits</h2></div>
-    <mat-card>
-      <mat-table [dataSource]="deposits()">
-        <ng-container matColumnDef="period">
-          <mat-header-cell *matHeaderCellDef>Period</mat-header-cell>
-          <mat-cell *matCellDef="let d">{{ d.depositMonth }}/{{ d.depositYear }}</mat-cell>
-        </ng-container>
-        <ng-container matColumnDef="amount">
-          <mat-header-cell *matHeaderCellDef>Amount</mat-header-cell>
-          <mat-cell *matCellDef="let d">{{ d.amount | number:'1.0-0' }}</mat-cell>
-        </ng-container>
-        <ng-container matColumnDef="notes">
-          <mat-header-cell *matHeaderCellDef>Notes</mat-header-cell>
-          <mat-cell *matCellDef="let d">{{ d.notes }}</mat-cell>
-        </ng-container>
-        <ng-container matColumnDef="status">
-          <mat-header-cell *matHeaderCellDef>Status</mat-header-cell>
-          <mat-cell *matCellDef="let d">
-            <mat-chip [color]="d.status === 'Approved' ? 'primary' : d.status === 'Rejected' ? 'warn' : 'accent'" highlighted>{{ d.status }}</mat-chip>
-          </mat-cell>
-        </ng-container>
-        <mat-header-row *matHeaderRowDef="cols"></mat-header-row>
-        <mat-row *matRowDef="let row; columns: cols"></mat-row>
-      </mat-table>
-      @if (!deposits().length) {
-        <p style="text-align:center;padding:24px;color:#888">No deposits yet.</p>
-      }
-    </mat-card>
+    <div class="page-header">
+      <h2 class="page-title">Monthly Deposits</h2>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Period</th>
+            <th>Amount</th>
+            <th>Notes</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (d of deposits(); track d.id) {
+            <tr>
+              <td>{{ d.depositMonth }}/{{ d.depositYear }}</td>
+              <td>{{ d.amount | number:'1.0-0' }}</td>
+              <td>{{ d.notes || '—' }}</td>
+              <td>
+                <span class="badge"
+                  [class.badge-success]="d.status === 'Approved'"
+                  [class.badge-danger]="d.status === 'Rejected'"
+                  [class.badge-warning]="d.status === 'Pending'">
+                  {{ d.status }}
+                </span>
+              </td>
+            </tr>
+          }
+          @if (!deposits().length) {
+            <tr><td colspan="4" class="table-empty">No deposits yet.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
   `
 })
 export class DepositsComponent implements OnInit {
   private api = inject(ApiService);
   deposits = signal<MonthlyDeposit[]>([]);
-  cols = ['period', 'amount', 'notes', 'status'];
   ngOnInit() { this.api.get<MonthlyDeposit[]>('/deposits').subscribe(d => this.deposits.set(d)); }
 }

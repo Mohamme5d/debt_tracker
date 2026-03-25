@@ -1,15 +1,7 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
-import { MatTableModule } from '@angular/material/table';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ApiService } from '../../../core/services/api.service';
 import { AdminUser } from '../../../core/models';
 import { ResetPasswordDialogComponent } from './reset-password-dialog.component';
@@ -17,94 +9,75 @@ import { ResetPasswordDialogComponent } from './reset-password-dialog.component'
 @Component({
   selector: 'app-admin-users',
   standalone: true,
-  imports: [
-    CommonModule, FormsModule, MatCardModule, MatTableModule,
-    MatButtonModule, MatIconModule, MatInputModule, MatFormFieldModule,
-    MatProgressSpinnerModule, MatTooltipModule, MatDialogModule
-  ],
+  imports: [CommonModule, FormsModule, MatDialogModule],
   template: `
     <div class="page-header">
-      <h2 style="margin:0;font-size:1.4rem;font-weight:700">All Users</h2>
-      <mat-form-field appearance="outline" style="width:280px">
-        <mat-label>Search users...</mat-label>
-        <input matInput [(ngModel)]="search" (ngModelChange)="onSearch($event)" />
-        <mat-icon matSuffix>search</mat-icon>
-      </mat-form-field>
+      <h2 class="page-title">All Users</h2>
+      <div class="search-wrap">
+        <span class="material-icons">search</span>
+        <input class="form-control" type="text" [(ngModel)]="search"
+          (ngModelChange)="onSearch($event)" placeholder="Search users..."
+          style="width:260px">
+      </div>
     </div>
 
     @if (loading()) {
-      <div style="text-align:center;padding:40px"><mat-spinner diameter="36"></mat-spinner></div>
+      <div style="text-align:center;padding:60px">
+        <span class="spinner spinner-lg"></span>
+      </div>
     } @else {
-      <mat-card>
-        <mat-table [dataSource]="users()">
-          <ng-container matColumnDef="name">
-            <mat-header-cell *matHeaderCellDef>User</mat-header-cell>
-            <mat-cell *matCellDef="let u">
-              <div>
-                <strong>{{ u.name }}</strong>
-                <div style="font-size:11px;color:#666">{{ u.email }}</div>
-              </div>
-            </mat-cell>
-          </ng-container>
-
-          <ng-container matColumnDef="tenant">
-            <mat-header-cell *matHeaderCellDef>Tenant</mat-header-cell>
-            <mat-cell *matCellDef="let u">{{ u.tenantName }}</mat-cell>
-          </ng-container>
-
-          <ng-container matColumnDef="role">
-            <mat-header-cell *matHeaderCellDef>Role</mat-header-cell>
-            <mat-cell *matCellDef="let u">
-              <span class="chip" [class.chip-blue]="u.role==='Owner'" [class.chip-gray]="u.role==='Employee'">
-                {{ u.role }}
-              </span>
-            </mat-cell>
-          </ng-container>
-
-          <ng-container matColumnDef="status">
-            <mat-header-cell *matHeaderCellDef>Status</mat-header-cell>
-            <mat-cell *matCellDef="let u">
-              <span class="chip" [class.chip-green]="u.isActive" [class.chip-red]="!u.isActive">
-                {{ u.isActive ? 'Active' : 'Inactive' }}
-              </span>
-            </mat-cell>
-          </ng-container>
-
-          <ng-container matColumnDef="created">
-            <mat-header-cell *matHeaderCellDef>Joined</mat-header-cell>
-            <mat-cell *matCellDef="let u">{{ u.createdAt | date:'mediumDate' }}</mat-cell>
-          </ng-container>
-
-          <ng-container matColumnDef="actions">
-            <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
-            <mat-cell *matCellDef="let u">
-              <button mat-icon-button [matTooltip]="u.isActive ? 'Deactivate' : 'Activate'"
-                [color]="u.isActive ? 'warn' : 'primary'" (click)="toggleStatus(u)">
-                <mat-icon>{{ u.isActive ? 'block' : 'check_circle' }}</mat-icon>
-              </button>
-              <button mat-icon-button matTooltip="Reset password" (click)="resetPassword(u)">
-                <mat-icon>lock_reset</mat-icon>
-              </button>
-            </mat-cell>
-          </ng-container>
-
-          <mat-header-row *matHeaderRowDef="cols"></mat-header-row>
-          <mat-row *matRowDef="let row; columns: cols"></mat-row>
-        </mat-table>
-        @if (!users().length) {
-          <div style="text-align:center;padding:40px;color:#888">No users found.</div>
-        }
-      </mat-card>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Tenant</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Joined</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (u of users(); track u.id) {
+              <tr>
+                <td>
+                  <div>
+                    <strong>{{ u.name }}</strong>
+                    <div style="font-size:11px;color:var(--text-secondary)">{{ u.email }}</div>
+                  </div>
+                </td>
+                <td>{{ u.tenantName }}</td>
+                <td>
+                  <span class="badge" [class.badge-primary]="u.role === 'Owner'" [class.badge-neutral]="u.role !== 'Owner'">
+                    {{ u.role }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge" [class.badge-success]="u.isActive" [class.badge-danger]="!u.isActive">
+                    {{ u.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td style="font-size:12px;color:var(--text-secondary)">{{ u.createdAt | date:'mediumDate' }}</td>
+                <td>
+                  <button class="btn-icon" [class.danger]="u.isActive" [class.success]="!u.isActive"
+                    [title]="u.isActive ? 'Deactivate' : 'Activate'" (click)="toggleStatus(u)">
+                    <span class="material-icons">{{ u.isActive ? 'block' : 'check_circle' }}</span>
+                  </button>
+                  <button class="btn-icon" title="Reset password" (click)="resetPassword(u)">
+                    <span class="material-icons">lock_reset</span>
+                  </button>
+                </td>
+              </tr>
+            }
+            @if (!users().length) {
+              <tr><td colspan="6" class="table-empty">No users found.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
     }
-  `,
-  styles: [`
-    .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
-    .chip { padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600; }
-    .chip-green { background:#e8f5e9; color:#2e7d32; }
-    .chip-red   { background:#ffebee; color:#c62828; }
-    .chip-blue  { background:#e3f2fd; color:#1565c0; }
-    .chip-gray  { background:#f5f5f5; color:#555; }
-  `]
+  `
 })
 export class AdminUsersComponent implements OnInit {
   private api = inject(ApiService);
@@ -113,7 +86,6 @@ export class AdminUsersComponent implements OnInit {
   users = signal<AdminUser[]>([]);
   loading = signal(true);
   search = '';
-  cols = ['name', 'tenant', 'role', 'status', 'created', 'actions'];
 
   ngOnInit() { this.load(); }
 
@@ -135,7 +107,9 @@ export class AdminUsersComponent implements OnInit {
   }
 
   resetPassword(u: AdminUser) {
-    const ref = this.dialog.open(ResetPasswordDialogComponent, { data: u, width: '360px' });
+    const ref = this.dialog.open(ResetPasswordDialogComponent, {
+      data: u, width: '360px', panelClass: 'dark-dialog'
+    });
     ref.afterClosed().subscribe(pw => {
       if (pw) this.api.post(`/admin/users/${u.id}/reset-password`, { newPassword: pw }).subscribe();
     });

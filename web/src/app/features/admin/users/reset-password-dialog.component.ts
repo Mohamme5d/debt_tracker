@@ -1,28 +1,30 @@
 import { Component, inject, Inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { AdminUser } from '../../../core/models';
 
 @Component({
   selector: 'app-reset-password-dialog',
   standalone: true,
-  imports: [FormsModule, MatDialogModule, MatButtonModule, MatInputModule, MatFormFieldModule],
+  imports: [FormsModule, MatDialogModule],
   template: `
-    <h3 mat-dialog-title>Reset Password — {{ user.name }}</h3>
-    <mat-dialog-content>
-      <mat-form-field appearance="outline" style="width:100%;margin-top:8px">
-        <mat-label>New Password</mat-label>
-        <input matInput type="password" [(ngModel)]="password" />
-      </mat-form-field>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button mat-dialog-close>Cancel</button>
-      <button mat-flat-button color="primary" [disabled]="password.length < 6"
+    <div class="modal-header">
+      <span class="modal-title">Reset Password — {{ user.name }}</span>
+      <button class="btn-icon" mat-dialog-close>
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">New Password</label>
+        <input class="form-control" type="password" [(ngModel)]="password" placeholder="Min 6 characters">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" mat-dialog-close>Cancel</button>
+      <button class="btn btn-primary" [disabled]="password.length < 6"
         (click)="dialogRef.close(password)">Set Password</button>
-    </mat-dialog-actions>
+    </div>
   `
 })
 export class ResetPasswordDialogComponent {
