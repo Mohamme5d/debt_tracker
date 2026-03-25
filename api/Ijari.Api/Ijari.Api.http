@@ -1,0 +1,6 @@
+@Ijari.Api_HostAddress = http://localhost:5230
+
+GET {{Ijari.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

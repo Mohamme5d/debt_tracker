@@ -1,0 +1,11 @@
+@use '@angular/material' as mat;
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, 'Helvetica Neue', sans-serif; }
+
+.mat-column-actions { width: 100px; text-align: center; }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat-card { text-align: center; }
+.stat-value { font-size: 2rem; font-weight: 700; color: #3f51b5; margin: 8px 0; }
+.stat-label { font-size: 0.85rem; color: #666; }

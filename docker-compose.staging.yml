@@ -1,0 +1,11 @@
+# Staging overrides — usage: docker compose -f docker-compose.yml -f docker-compose.staging.yml up -d
+services:
+  api:
+    environment:
+      ASPNETCORE_ENVIRONMENT: Staging
+      # Override secrets via .env.staging file or CI env vars
+
+  web:
+    build:
+      args:
+        - BUILD_CONFIGURATION=staging
