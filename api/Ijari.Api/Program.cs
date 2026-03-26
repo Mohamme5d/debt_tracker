@@ -10,8 +10,20 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
+
+// Bootstrap logger for startup errors (before config is loaded)
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Replace built-in logging with Serilog (reads config from appsettings.json Serilog section)
+builder.Host.UseSerilog((ctx, services, config) =>
+    config.ReadFrom.Configuration(ctx.Configuration)
+          .ReadFrom.Services(services)
+          .Enrich.FromLogContext());
 
 // ── Database provider ─────────────────────────────────────────────────────────
 // Set  Database:Provider  to  PostgreSQL | MySQL | SqlServer  in config/env.
@@ -106,6 +118,16 @@ await MigrateAndSeedAsync(app);
 
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors();
+app.UseSerilogRequestLogging(opts =>
+{
+    opts.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0}ms";
+    opts.EnrichDiagnosticContext = (diag, ctx) =>
+    {
+        diag.Set("UserAgent",   ctx.Request.Headers.UserAgent.ToString());
+        diag.Set("RemoteIP",    ctx.Connection.RemoteIpAddress?.ToString());
+        diag.Set("RequestHost", ctx.Request.Host.Value);
+    };
+});
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseAuthentication();

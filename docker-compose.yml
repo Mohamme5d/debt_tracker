@@ -104,6 +104,8 @@ services:
       Admin__Email: "${ADMIN_EMAIL:-admin@ijari.app}"
       Admin__Password: "${ADMIN_PASSWORD:-Admin@12345}"
       ASPNETCORE_ENVIRONMENT: "${ASPNETCORE_ENVIRONMENT:-Production}"
+    volumes:
+      - api_logs:/app/logs
     # When switching providers, update this to point at the correct DB service:
     #   PostgreSQL → postgres / MySQL → mysql / SQL Server → mssql
     depends_on:
@@ -133,5 +135,6 @@ services:
 
 volumes:
   pgdata:
+  api_logs:
   # mysqldata:
   # mssqldata:
