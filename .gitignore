@@ -20,6 +20,9 @@ web/.env
 .DS_Store
 Thumbs.db
 
+# ── Release artifacts (generated — do not commit) ────────────────────────────
+release/
+
 # ── IDE ───────────────────────────────────────────────────────────────────────
 .vscode/
 .idea/
