@@ -13,8 +13,10 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// DbContext — provider selected via Database:Provider config (PostgreSQL | MySQL | SqlServer)
-var dbProvider = builder.Configuration["Database:Provider"] ?? "PostgreSQL";
+// ── Database provider ─────────────────────────────────────────────────────────
+// Set  Database:Provider  to  PostgreSQL | MySQL | SqlServer  in config/env.
+// The matching named connection string is used automatically.
+var dbProvider = (builder.Configuration["Database:Provider"] ?? "PostgreSQL").Trim();
 var connStr = builder.Configuration.GetConnectionString(dbProvider)
            ?? builder.Configuration.GetConnectionString("Default")!;
 
@@ -23,7 +25,9 @@ builder.Services.AddDbContext<AppDbContext>((sp, opts) =>
     switch (dbProvider.ToLowerInvariant())
     {
         case "mysql":
-            opts.UseMySql(connStr, ServerVersion.AutoDetect(connStr));
+            // Use a static server version — AutoDetect requires a live connection
+            // at DI registration time which can fail if the container isn't ready yet.
+            opts.UseMySql(connStr, new MySqlServerVersion(new Version(8, 0, 0)));
             break;
         case "sqlserver":
             opts.UseSqlServer(connStr);
@@ -34,17 +38,15 @@ builder.Services.AddDbContext<AppDbContext>((sp, opts) =>
     }
 });
 
-// HttpContextAccessor (needed for CurrentTenantService)
+// ── Core services ─────────────────────────────────────────────────────────────
 builder.Services.AddHttpContextAccessor();
-
-// Core services
 builder.Services.AddScoped<ICurrentTenant, CurrentTenantService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IApprovalService, ApprovalService>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
 
-// JWT Authentication
+// ── JWT Authentication ────────────────────────────────────────────────────────
 var jwtSecret = builder.Configuration["Jwt:Secret"]!;
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(opts =>
@@ -64,14 +66,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 
-// CORS
 builder.Services.AddCors(opts =>
-{
-    opts.AddDefaultPolicy(policy =>
-        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
-});
+    opts.AddDefaultPolicy(p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
 
-// Swagger with JWT support
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -95,48 +92,10 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Auto-migrate and seed on startup
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
-    db.Database.Migrate();
-
-    // Seed SuperAdmin if none exists
-    if (!db.Users.IgnoreQueryFilters().Any(u => u.Role == UserRole.SuperAdmin))
-    {
-        var adminEmail = config["Admin:Email"] ?? "admin@ijari.app";
-        var adminPassword = config["Admin:Password"] ?? "Admin@12345";
-
-        // Ensure a platform tenant exists (fixed well-known ID)
-        var platformId = new Guid("00000000-0000-0000-0000-000000000001");
-        if (!db.Tenants.Any(t => t.Id == platformId))
-        {
-            db.Tenants.Add(new Tenant
-            {
-                Id = platformId,
-                Name = "Ijari Platform",
-                Email = "platform@ijari.app",
-                Plan = "platform",
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow
-            });
-            db.SaveChanges();
-        }
-
-        db.Users.Add(new User
-        {
-            TenantId = platformId,
-            Name = "Super Admin",
-            Email = adminEmail,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(adminPassword),
-            Role = UserRole.SuperAdmin,
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow
-        });
-        db.SaveChanges();
-    }
-}
+// ── Auto-migrate + seed ───────────────────────────────────────────────────────
+// Retries up to 10 times with 3-second delays so the API gracefully waits for
+// the database container to become ready (MySQL and SQL Server start slower).
+await MigrateAndSeedAsync(app);
 
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors();
@@ -146,3 +105,70 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
+
+// ─────────────────────────────────────────────────────────────────────────────
+static async Task MigrateAndSeedAsync(WebApplication app)
+{
+    const int maxRetries = 10;
+    const int delaySeconds = 3;
+
+    using var scope = app.Services.CreateScope();
+    var db     = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    var provider = (config["Database:Provider"] ?? "PostgreSQL").Trim();
+
+    logger.LogInformation("Database provider: {Provider}", provider);
+
+    for (int attempt = 1; attempt <= maxRetries; attempt++)
+    {
+        try
+        {
+            logger.LogInformation("Applying migrations (attempt {Attempt}/{Max})…", attempt, maxRetries);
+            await db.Database.MigrateAsync();
+            logger.LogInformation("Migrations applied successfully.");
+            break;
+        }
+        catch (Exception ex) when (attempt < maxRetries)
+        {
+            logger.LogWarning("Migration failed: {Message}. Retrying in {Delay}s…", ex.Message, delaySeconds);
+            await Task.Delay(TimeSpan.FromSeconds(delaySeconds));
+        }
+    }
+
+    // Seed SuperAdmin + platform tenant if not present
+    if (!db.Users.IgnoreQueryFilters().Any(u => u.Role == UserRole.SuperAdmin))
+    {
+        var adminEmail    = config["Admin:Email"]    ?? "admin@ijari.app";
+        var adminPassword = config["Admin:Password"] ?? "Admin@12345";
+        var platformId    = new Guid("00000000-0000-0000-0000-000000000001");
+
+        if (!db.Tenants.Any(t => t.Id == platformId))
+        {
+            db.Tenants.Add(new Tenant
+            {
+                Id        = platformId,
+                Name      = "Ijari Platform",
+                Email     = "platform@ijari.app",
+                Plan      = "platform",
+                IsActive  = true,
+                CreatedAt = DateTime.UtcNow
+            });
+            await db.SaveChangesAsync();
+        }
+
+        db.Users.Add(new User
+        {
+            TenantId     = platformId,
+            Name         = "Super Admin",
+            Email        = adminEmail,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(adminPassword),
+            Role         = UserRole.SuperAdmin,
+            IsActive     = true,
+            CreatedAt    = DateTime.UtcNow
+        });
+        await db.SaveChangesAsync();
+
+        logger.LogInformation("Super admin seeded: {Email}", adminEmail);
+    }
+}

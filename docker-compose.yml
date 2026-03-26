@@ -75,7 +75,9 @@ services:
     build:
       context: ./api
       dockerfile: Dockerfile
-    restart: always
+    # on-failure lets Docker restart the API if it exits while the DB is still
+    # starting up. The startup code already retries internally (10× / 3s each).
+    restart: on-failure
     environment:
       # ── Database provider ──────────────────────────────────────────────────
       Database__Provider: "${DB_PROVIDER:-PostgreSQL}"
@@ -98,6 +100,8 @@ services:
       Admin__Email: "${ADMIN_EMAIL:-admin@ijari.app}"
       Admin__Password: "${ADMIN_PASSWORD:-Admin@12345}"
       ASPNETCORE_ENVIRONMENT: "${ASPNETCORE_ENVIRONMENT:-Production}"
+    # When switching providers, update this to point at the correct DB service:
+    #   PostgreSQL → postgres / MySQL → mysql / SQL Server → mssql
     depends_on:
       postgres:
         condition: service_healthy
