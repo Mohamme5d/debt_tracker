@@ -30,3 +30,5 @@ public record CommissionReportResponse(
     decimal CommissionRate,
     decimal CommissionAmount
 );
+
+public record MonthlyTrendPoint(int Month, int Year, decimal Collected, decimal Expenses);

@@ -20,7 +20,7 @@ services:
     image: axllent/mailpit
     restart: always
     ports:
-      - "8025:8025"   # web UI
+      - "8026:8025"   # web UI
 
   # ── ASP.NET Core API ────────────────────────────────────────────────────────
   api:

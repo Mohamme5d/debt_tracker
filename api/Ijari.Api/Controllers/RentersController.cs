@@ -31,10 +31,15 @@ public class RentersController : ControllerBase
         var query = _context.Renters.Include(r => r.Apartment).AsQueryable();
 
         if (!_tenant.IsOwner)
-            query = query.Where(r => r.Status == RecordStatus.Approved || r.SubmittedById == _tenant.UserId);
+        {
+            var assigned = _context.ApartmentAssignments
+                .Where(a => a.EmployeeId == _tenant.UserId)
+                .Select(a => a.ApartmentId);
+            query = query.Where(r => assigned.Contains(r.ApartmentId) &&
+                                     (r.Status == RecordStatus.Approved || r.SubmittedById == _tenant.UserId));
+        }
 
-        var list = await query.ToListAsync();
-        return Ok(list.Select(Map));
+        return Ok((await query.ToListAsync()).Select(Map));
     }
 
     [HttpGet("{id}")]
@@ -49,6 +54,13 @@ public class RentersController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<RenterResponse>> Create(RenterRequest req)
     {
+        if (!_tenant.IsOwner)
+        {
+            var isAssigned = await _context.ApartmentAssignments
+                .AnyAsync(a => a.EmployeeId == _tenant.UserId && a.ApartmentId == req.ApartmentId);
+            if (!isAssigned) return Forbid();
+        }
+
         var status = _tenant.IsOwner ? RecordStatus.Approved : RecordStatus.Draft;
         var r = new Renter
         {

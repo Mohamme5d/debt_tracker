@@ -8,6 +8,7 @@ export interface MonthlyDeposit { id: string; depositMonth: number; depositYear:
 export interface ApprovalRequest { id: string; entityType: string; entityId: string; action: string; status: string; submittedByName: string; submittedByEmail: string; reviewedByName?: string; reviewNotes?: string; createdAt: string; reviewedAt?: string; }
 export interface Notification { id: string; title: string; body: string; isRead: boolean; entityType?: string; entityId?: string; createdAt: string; }
 export interface DashboardStats { totalApartments: number; activeRenters: number; totalCollectedThisMonth: number; totalOutstanding: number; totalExpensesThisMonth: number; pendingApprovals: number; unreadNotifications: number; }
+export interface MonthlyTrendPoint { month: number; year: number; collected: number; expenses: number; }
 
 // ── Admin / Platform models ───────────────────────────────────────────────────
 export interface PlatformStats { totalTenants: number; activeTenants: number; inactiveTenants: number; totalUsers: number; totalApartments: number; totalActiveRenters: number; newTenantsThisMonth: number; }

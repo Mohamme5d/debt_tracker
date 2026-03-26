@@ -32,7 +32,13 @@ public class PaymentsController : ControllerBase
         if (month.HasValue) query = query.Where(p => p.PaymentMonth == month);
         if (year.HasValue) query = query.Where(p => p.PaymentYear == year);
         if (!_tenant.IsOwner)
-            query = query.Where(p => p.Status == RecordStatus.Approved || p.SubmittedById == _tenant.UserId);
+        {
+            var assigned = _context.ApartmentAssignments
+                .Where(a => a.EmployeeId == _tenant.UserId)
+                .Select(a => a.ApartmentId);
+            query = query.Where(p => assigned.Contains(p.ApartmentId) &&
+                                     (p.Status == RecordStatus.Approved || p.SubmittedById == _tenant.UserId));
+        }
         return Ok((await query.ToListAsync()).Select(Map));
     }
 
@@ -47,6 +53,13 @@ public class PaymentsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<RentPaymentResponse>> Create(RentPaymentRequest req)
     {
+        if (!_tenant.IsOwner)
+        {
+            var isAssigned = await _context.ApartmentAssignments
+                .AnyAsync(a => a.EmployeeId == _tenant.UserId && a.ApartmentId == req.ApartmentId);
+            if (!isAssigned) return Forbid();
+        }
+
         var outstanding = req.OutstandingBefore + req.RentAmount - req.AmountPaid;
         var status = _tenant.IsOwner ? RecordStatus.Approved : RecordStatus.Draft;
 

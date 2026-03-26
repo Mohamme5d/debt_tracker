@@ -1,7 +1,8 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, computed } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../core/services/api.service';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-reports',
@@ -23,7 +24,7 @@ import { ApiService } from '../../core/services/api.service';
         <button class="btn btn-primary" type="button" (click)="load()">
           <span class="material-icons">search</span> Load Report
         </button>
-        @if (isOwner()) {
+        @if (isOwner) {
           <button class="btn btn-ghost" type="button" (click)="loadCommission()">
             <span class="material-icons">percent</span> Commission
           </button>
@@ -97,10 +98,11 @@ import { ApiService } from '../../core/services/api.service';
 })
 export class ReportsComponent {
   private api = inject(ApiService);
+  private auth = inject(AuthService);
   private fb = inject(FormBuilder);
   report = signal<any>(null);
   commission = signal<any>(null);
-  isOwner = signal(true);
+  get isOwner() { return this.auth.isOwner; }
 
   form = this.fb.group({
     month: [new Date().getMonth() + 1],

@@ -25,22 +25,26 @@ public class AppDbContext : DbContext
     public DbSet<MonthlyDeposit> MonthlyDeposits => Set<MonthlyDeposit>();
     public DbSet<ApprovalRequest> ApprovalRequests => Set<ApprovalRequest>();
     public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<ApartmentAssignment> ApartmentAssignments => Set<ApartmentAssignment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        var tenantId = _currentTenant?.Id ?? Guid.Empty;
-
-        // Global tenant filters
-        modelBuilder.Entity<User>().HasQueryFilter(e => e.TenantId == tenantId);
-        modelBuilder.Entity<Apartment>().HasQueryFilter(e => e.TenantId == tenantId);
-        modelBuilder.Entity<Renter>().HasQueryFilter(e => e.TenantId == tenantId);
-        modelBuilder.Entity<RentPayment>().HasQueryFilter(e => e.TenantId == tenantId);
-        modelBuilder.Entity<Expense>().HasQueryFilter(e => e.TenantId == tenantId);
-        modelBuilder.Entity<MonthlyDeposit>().HasQueryFilter(e => e.TenantId == tenantId);
-        modelBuilder.Entity<ApprovalRequest>().HasQueryFilter(e => e.TenantId == tenantId);
-        modelBuilder.Entity<Notification>().HasQueryFilter(e => e.TenantId == tenantId);
+        // Global tenant filters — reference _currentTenant directly (not via local variable)
+        // so EF Core reads the correct tenant ID at query execution time (per request), not at model build time.
+        modelBuilder.Entity<User>().HasQueryFilter(e => e.TenantId == (_currentTenant != null ? _currentTenant.Id : Guid.Empty));
+        modelBuilder.Entity<Apartment>().HasQueryFilter(e => e.TenantId == (_currentTenant != null ? _currentTenant.Id : Guid.Empty));
+        modelBuilder.Entity<Renter>().HasQueryFilter(e => e.TenantId == (_currentTenant != null ? _currentTenant.Id : Guid.Empty));
+        modelBuilder.Entity<RentPayment>().HasQueryFilter(e => e.TenantId == (_currentTenant != null ? _currentTenant.Id : Guid.Empty));
+        modelBuilder.Entity<Expense>().HasQueryFilter(e => e.TenantId == (_currentTenant != null ? _currentTenant.Id : Guid.Empty));
+        modelBuilder.Entity<MonthlyDeposit>().HasQueryFilter(e => e.TenantId == (_currentTenant != null ? _currentTenant.Id : Guid.Empty));
+        modelBuilder.Entity<ApprovalRequest>().HasQueryFilter(e => e.TenantId == (_currentTenant != null ? _currentTenant.Id : Guid.Empty));
+        modelBuilder.Entity<Notification>().HasQueryFilter(e => e.TenantId == (_currentTenant != null ? _currentTenant.Id : Guid.Empty));
+        modelBuilder.Entity<ApartmentAssignment>().HasQueryFilter(e => e.TenantId == (_currentTenant != null ? _currentTenant.Id : Guid.Empty));
+        modelBuilder.Entity<ApartmentAssignment>().HasIndex(e => new { e.TenantId, e.EmployeeId, e.ApartmentId }).IsUnique();
+        modelBuilder.Entity<ApartmentAssignment>().HasOne(e => e.Employee).WithMany().HasForeignKey(e => e.EmployeeId).OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<ApartmentAssignment>().HasOne(e => e.Apartment).WithMany().HasForeignKey(e => e.ApartmentId).OnDelete(DeleteBehavior.Cascade);
 
         // Unique constraints
         modelBuilder.Entity<RentPayment>().HasIndex(e => new
