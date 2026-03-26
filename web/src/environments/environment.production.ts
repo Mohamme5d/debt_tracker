@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
   staging: false,
-  apiUrl: '/api',
+  apiUrl: 'https://ijari-api.nexiscore.com/api',
   appName: 'Ijari',
 };
