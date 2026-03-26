@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -15,12 +15,12 @@ namespace Ijari.Infrastructure.Migrations
                 name: "Tenants",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Email = table.Column<string>(type: "text", nullable: false),
-                    Plan = table.Column<string>(type: "text", nullable: false),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Id = table.Column<Guid>(nullable: false),
+                    Name = table.Column<string>(nullable: false),
+                    Email = table.Column<string>(nullable: false),
+                    Plan = table.Column<string>(nullable: false),
+                    IsActive = table.Column<bool>(nullable: false),
+                    CreatedAt = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -31,13 +31,13 @@ namespace Ijari.Infrastructure.Migrations
                 name: "Apartments",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Address = table.Column<string>(type: "text", nullable: true),
-                    Description = table.Column<string>(type: "text", nullable: true),
-                    Notes = table.Column<string>(type: "text", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    TenantId = table.Column<Guid>(type: "uuid", nullable: false)
+                    Id = table.Column<Guid>(nullable: false),
+                    Name = table.Column<string>(nullable: false),
+                    Address = table.Column<string>(nullable: true),
+                    Description = table.Column<string>(nullable: true),
+                    Notes = table.Column<string>(nullable: true),
+                    CreatedAt = table.Column<DateTime>(nullable: false),
+                    TenantId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -54,15 +54,15 @@ namespace Ijari.Infrastructure.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Email = table.Column<string>(type: "text", nullable: false),
-                    PasswordHash = table.Column<string>(type: "text", nullable: false),
-                    Role = table.Column<string>(type: "text", nullable: false),
-                    Phone = table.Column<string>(type: "text", nullable: true),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    TenantId = table.Column<Guid>(type: "uuid", nullable: false)
+                    Id = table.Column<Guid>(nullable: false),
+                    Name = table.Column<string>(nullable: false),
+                    Email = table.Column<string>(nullable: false),
+                    PasswordHash = table.Column<string>(nullable: false),
+                    Role = table.Column<string>(nullable: false),
+                    Phone = table.Column<string>(nullable: true),
+                    IsActive = table.Column<bool>(nullable: false),
+                    CreatedAt = table.Column<DateTime>(nullable: false),
+                    TenantId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -79,18 +79,18 @@ namespace Ijari.Infrastructure.Migrations
                 name: "ApprovalRequests",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    EntityType = table.Column<string>(type: "text", nullable: false),
-                    EntityId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Action = table.Column<string>(type: "text", nullable: false),
-                    PayloadJson = table.Column<string>(type: "text", nullable: true),
-                    Status = table.Column<string>(type: "text", nullable: false),
-                    SubmittedById = table.Column<Guid>(type: "uuid", nullable: false),
-                    ReviewedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    ReviewNotes = table.Column<string>(type: "text", nullable: true),
-                    ReviewedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    TenantId = table.Column<Guid>(type: "uuid", nullable: false)
+                    Id = table.Column<Guid>(nullable: false),
+                    EntityType = table.Column<string>(nullable: false),
+                    EntityId = table.Column<Guid>(nullable: false),
+                    Action = table.Column<string>(nullable: false),
+                    PayloadJson = table.Column<string>(nullable: true),
+                    Status = table.Column<string>(nullable: false),
+                    SubmittedById = table.Column<Guid>(nullable: false),
+                    ReviewedById = table.Column<Guid>(nullable: true),
+                    ReviewNotes = table.Column<string>(nullable: true),
+                    ReviewedAt = table.Column<DateTime>(nullable: true),
+                    CreatedAt = table.Column<DateTime>(nullable: false),
+                    TenantId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -119,19 +119,19 @@ namespace Ijari.Infrastructure.Migrations
                 name: "Expenses",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: false),
-                    Amount = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
-                    ExpenseDate = table.Column<DateOnly>(type: "date", nullable: false),
-                    Category = table.Column<string>(type: "text", nullable: true),
-                    Month = table.Column<int>(type: "integer", nullable: false),
-                    Year = table.Column<int>(type: "integer", nullable: false),
-                    Notes = table.Column<string>(type: "text", nullable: true),
-                    Status = table.Column<string>(type: "text", nullable: false),
-                    SubmittedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    ApprovedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    TenantId = table.Column<Guid>(type: "uuid", nullable: false)
+                    Id = table.Column<Guid>(nullable: false),
+                    Description = table.Column<string>(nullable: false),
+                    Amount = table.Column<decimal>(precision: 18, scale: 2, nullable: false),
+                    ExpenseDate = table.Column<DateOnly>(nullable: false),
+                    Category = table.Column<string>(nullable: true),
+                    Month = table.Column<int>(nullable: false),
+                    Year = table.Column<int>(nullable: false),
+                    Notes = table.Column<string>(nullable: true),
+                    Status = table.Column<string>(nullable: false),
+                    SubmittedById = table.Column<Guid>(nullable: true),
+                    ApprovedById = table.Column<Guid>(nullable: true),
+                    CreatedAt = table.Column<DateTime>(nullable: false),
+                    TenantId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -160,16 +160,16 @@ namespace Ijari.Infrastructure.Migrations
                 name: "MonthlyDeposits",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    DepositMonth = table.Column<int>(type: "integer", nullable: false),
-                    DepositYear = table.Column<int>(type: "integer", nullable: false),
-                    Amount = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
-                    Notes = table.Column<string>(type: "text", nullable: true),
-                    Status = table.Column<string>(type: "text", nullable: false),
-                    SubmittedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    ApprovedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    TenantId = table.Column<Guid>(type: "uuid", nullable: false)
+                    Id = table.Column<Guid>(nullable: false),
+                    DepositMonth = table.Column<int>(nullable: false),
+                    DepositYear = table.Column<int>(nullable: false),
+                    Amount = table.Column<decimal>(precision: 18, scale: 2, nullable: false),
+                    Notes = table.Column<string>(nullable: true),
+                    Status = table.Column<string>(nullable: false),
+                    SubmittedById = table.Column<Guid>(nullable: true),
+                    ApprovedById = table.Column<Guid>(nullable: true),
+                    CreatedAt = table.Column<DateTime>(nullable: false),
+                    TenantId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -198,15 +198,15 @@ namespace Ijari.Infrastructure.Migrations
                 name: "Notifications",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Title = table.Column<string>(type: "text", nullable: false),
-                    Body = table.Column<string>(type: "text", nullable: false),
-                    IsRead = table.Column<bool>(type: "boolean", nullable: false),
-                    EntityType = table.Column<string>(type: "text", nullable: true),
-                    EntityId = table.Column<Guid>(type: "uuid", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    TenantId = table.Column<Guid>(type: "uuid", nullable: false)
+                    Id = table.Column<Guid>(nullable: false),
+                    UserId = table.Column<Guid>(nullable: false),
+                    Title = table.Column<string>(nullable: false),
+                    Body = table.Column<string>(nullable: false),
+                    IsRead = table.Column<bool>(nullable: false),
+                    EntityType = table.Column<string>(nullable: true),
+                    EntityId = table.Column<Guid>(nullable: true),
+                    CreatedAt = table.Column<DateTime>(nullable: false),
+                    TenantId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -229,12 +229,12 @@ namespace Ijari.Infrastructure.Migrations
                 name: "RefreshTokens",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Token = table.Column<string>(type: "text", nullable: false),
-                    ExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    IsRevoked = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Id = table.Column<Guid>(nullable: false),
+                    UserId = table.Column<Guid>(nullable: false),
+                    Token = table.Column<string>(nullable: false),
+                    ExpiresAt = table.Column<DateTime>(nullable: false),
+                    IsRevoked = table.Column<bool>(nullable: false),
+                    CreatedAt = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -251,20 +251,20 @@ namespace Ijari.Infrastructure.Migrations
                 name: "Renters",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    ApartmentId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Phone = table.Column<string>(type: "text", nullable: true),
-                    Email = table.Column<string>(type: "text", nullable: true),
-                    MonthlyRent = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
-                    StartDate = table.Column<DateOnly>(type: "date", nullable: false),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    Notes = table.Column<string>(type: "text", nullable: true),
-                    Status = table.Column<string>(type: "text", nullable: false),
-                    SubmittedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    ApprovedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    TenantId = table.Column<Guid>(type: "uuid", nullable: false)
+                    Id = table.Column<Guid>(nullable: false),
+                    ApartmentId = table.Column<Guid>(nullable: false),
+                    Name = table.Column<string>(nullable: false),
+                    Phone = table.Column<string>(nullable: true),
+                    Email = table.Column<string>(nullable: true),
+                    MonthlyRent = table.Column<decimal>(precision: 18, scale: 2, nullable: false),
+                    StartDate = table.Column<DateOnly>(nullable: false),
+                    IsActive = table.Column<bool>(nullable: false),
+                    Notes = table.Column<string>(nullable: true),
+                    Status = table.Column<string>(nullable: false),
+                    SubmittedById = table.Column<Guid>(nullable: true),
+                    ApprovedById = table.Column<Guid>(nullable: true),
+                    CreatedAt = table.Column<DateTime>(nullable: false),
+                    TenantId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -299,22 +299,22 @@ namespace Ijari.Infrastructure.Migrations
                 name: "RentPayments",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    RenterId = table.Column<Guid>(type: "uuid", nullable: true),
-                    ApartmentId = table.Column<Guid>(type: "uuid", nullable: false),
-                    PaymentMonth = table.Column<int>(type: "integer", nullable: false),
-                    PaymentYear = table.Column<int>(type: "integer", nullable: false),
-                    RentAmount = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
-                    OutstandingBefore = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
-                    AmountPaid = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
-                    OutstandingAfter = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
-                    IsVacant = table.Column<bool>(type: "boolean", nullable: false),
-                    Notes = table.Column<string>(type: "text", nullable: true),
-                    Status = table.Column<string>(type: "text", nullable: false),
-                    SubmittedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    ApprovedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    TenantId = table.Column<Guid>(type: "uuid", nullable: false)
+                    Id = table.Column<Guid>(nullable: false),
+                    RenterId = table.Column<Guid>(nullable: true),
+                    ApartmentId = table.Column<Guid>(nullable: false),
+                    PaymentMonth = table.Column<int>(nullable: false),
+                    PaymentYear = table.Column<int>(nullable: false),
+                    RentAmount = table.Column<decimal>(precision: 18, scale: 2, nullable: false),
+                    OutstandingBefore = table.Column<decimal>(precision: 18, scale: 2, nullable: false),
+                    AmountPaid = table.Column<decimal>(precision: 18, scale: 2, nullable: false),
+                    OutstandingAfter = table.Column<decimal>(precision: 18, scale: 2, nullable: false),
+                    IsVacant = table.Column<bool>(nullable: false),
+                    Notes = table.Column<string>(nullable: true),
+                    Status = table.Column<string>(nullable: false),
+                    SubmittedById = table.Column<Guid>(nullable: true),
+                    ApprovedById = table.Column<Guid>(nullable: true),
+                    CreatedAt = table.Column<DateTime>(nullable: false),
+                    TenantId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -477,35 +477,16 @@ namespace Ijari.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "ApprovalRequests");
-
-            migrationBuilder.DropTable(
-                name: "Expenses");
-
-            migrationBuilder.DropTable(
-                name: "MonthlyDeposits");
-
-            migrationBuilder.DropTable(
-                name: "Notifications");
-
-            migrationBuilder.DropTable(
-                name: "RefreshTokens");
-
-            migrationBuilder.DropTable(
-                name: "RentPayments");
-
-            migrationBuilder.DropTable(
-                name: "Renters");
-
-            migrationBuilder.DropTable(
-                name: "Apartments");
-
-            migrationBuilder.DropTable(
-                name: "Users");
-
-            migrationBuilder.DropTable(
-                name: "Tenants");
+            migrationBuilder.DropTable(name: "ApprovalRequests");
+            migrationBuilder.DropTable(name: "Expenses");
+            migrationBuilder.DropTable(name: "MonthlyDeposits");
+            migrationBuilder.DropTable(name: "Notifications");
+            migrationBuilder.DropTable(name: "RefreshTokens");
+            migrationBuilder.DropTable(name: "RentPayments");
+            migrationBuilder.DropTable(name: "Renters");
+            migrationBuilder.DropTable(name: "Apartments");
+            migrationBuilder.DropTable(name: "Users");
+            migrationBuilder.DropTable(name: "Tenants");
         }
     }
 }

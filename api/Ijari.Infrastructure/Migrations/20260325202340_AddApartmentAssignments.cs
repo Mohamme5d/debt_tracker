@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -15,11 +15,11 @@ namespace Ijari.Infrastructure.Migrations
                 name: "ApartmentAssignments",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    EmployeeId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ApartmentId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    TenantId = table.Column<Guid>(type: "uuid", nullable: false)
+                    Id = table.Column<Guid>(nullable: false),
+                    EmployeeId = table.Column<Guid>(nullable: false),
+                    ApartmentId = table.Column<Guid>(nullable: false),
+                    CreatedAt = table.Column<DateTime>(nullable: false),
+                    TenantId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -64,8 +64,7 @@ namespace Ijari.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "ApartmentAssignments");
+            migrationBuilder.DropTable(name: "ApartmentAssignments");
         }
     }
 }

@@ -13,10 +13,25 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// DbContext
+// DbContext — provider selected via Database:Provider config (PostgreSQL | MySQL | SqlServer)
+var dbProvider = builder.Configuration["Database:Provider"] ?? "PostgreSQL";
+var connStr = builder.Configuration.GetConnectionString(dbProvider)
+           ?? builder.Configuration.GetConnectionString("Default")!;
+
 builder.Services.AddDbContext<AppDbContext>((sp, opts) =>
 {
-    opts.UseNpgsql(builder.Configuration.GetConnectionString("Default"));
+    switch (dbProvider.ToLowerInvariant())
+    {
+        case "mysql":
+            opts.UseMySql(connStr, ServerVersion.AutoDetect(connStr));
+            break;
+        case "sqlserver":
+            opts.UseSqlServer(connStr);
+            break;
+        default: // postgresql
+            opts.UseNpgsql(connStr);
+            break;
+    }
 });
 
 // HttpContextAccessor (needed for CurrentTenantService)

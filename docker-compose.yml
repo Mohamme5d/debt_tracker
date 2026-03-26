@@ -1,5 +1,20 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Ijari — Docker Compose
+#
+# DATABASE PROVIDER — set Database__Provider + the matching service below.
+# Supported values: PostgreSQL | MySQL | SqlServer
+#
+# Quick-switch guide:
+#   PostgreSQL (default) → keep as-is
+#   MySQL                → set Database__Provider=MySQL, enable mysql service,
+#                          set ConnectionStrings__MySQL, disable postgres service
+#   SQL Server           → set Database__Provider=SqlServer, enable mssql service,
+#                          set ConnectionStrings__SqlServer, disable postgres service
+# ─────────────────────────────────────────────────────────────────────────────
+
 services:
-  # ── Database ────────────────────────────────────────────────────────────────
+
+  # ── PostgreSQL (default) ────────────────────────────────────────────────────
   postgres:
     image: postgres:16
     restart: always
@@ -15,6 +30,39 @@ services:
       timeout: 5s
       retries: 5
 
+  # ── MySQL 8 (optional — uncomment + disable postgres to switch) ─────────────
+  # mysql:
+  #   image: mysql:8
+  #   restart: always
+  #   environment:
+  #     MYSQL_DATABASE: ijari
+  #     MYSQL_USER: ijari
+  #     MYSQL_PASSWORD: ijari123
+  #     MYSQL_ROOT_PASSWORD: root123
+  #   volumes:
+  #     - mysqldata:/var/lib/mysql
+  #   healthcheck:
+  #     test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "ijari", "-pijari123"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 10
+
+  # ── SQL Server 2022 (optional — uncomment + disable postgres to switch) ─────
+  # mssql:
+  #   image: mcr.microsoft.com/mssql/server:2022-latest
+  #   restart: always
+  #   environment:
+  #     ACCEPT_EULA: "Y"
+  #     SA_PASSWORD: "YourStrong@Passw0rd"
+  #     MSSQL_PID: "Express"
+  #   volumes:
+  #     - mssqldata:/var/opt/mssql
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P YourStrong@Passw0rd -Q 'SELECT 1' -No"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 10
+
   # ── Mail (dev/staging — swap for real SMTP in production) ──────────────────
   mailpit:
     image: axllent/mailpit
@@ -29,7 +77,17 @@ services:
       dockerfile: Dockerfile
     restart: always
     environment:
+      # ── Database provider ──────────────────────────────────────────────────
+      Database__Provider: "${DB_PROVIDER:-PostgreSQL}"
+
+      # ── Connection strings (only the selected provider is used) ───────────
+      ConnectionStrings__PostgreSQL: "Host=postgres;Port=5432;Database=ijari;Username=ijari;Password=ijari123"
+      ConnectionStrings__MySQL: "Server=mysql;Port=3306;Database=ijari;Uid=ijari;Pwd=ijari123;"
+      ConnectionStrings__SqlServer: "Server=mssql,1433;Database=ijari;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;"
+
+      # ── Legacy fallback (kept for backwards compatibility) ────────────────
       ConnectionStrings__Default: "Host=postgres;Port=5432;Database=ijari;Username=ijari;Password=ijari123"
+
       Jwt__Secret: "${JWT_SECRET:-super-secret-key-change-in-production-32chars!!}"
       Jwt__Issuer: "ijari-api"
       Jwt__Audience: "ijari-clients"
@@ -67,3 +125,5 @@ services:
 
 volumes:
   pgdata:
+  # mysqldata:
+  # mssqldata:
