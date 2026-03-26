@@ -99,7 +99,7 @@ services:
       Email__FromName: "Ijari"
       # Comma-separated list of allowed origins, or * for any.
       # Override with: Cors__Origins__0=https://app.example.com Cors__Origins__1=https://www.example.com
-      Cors__Origins__0: "${CORS_ORIGIN_0:-http://localhost}"
+      Cors__Origins__0: "${CORS_ORIGIN_0:-https://ijari.nexiscore.com}"
       Cors__Origins__1: "${CORS_ORIGIN_1:-http://localhost:4200}"
       Admin__Email: "${ADMIN_EMAIL:-admin@ijari.app}"
       Admin__Password: "${ADMIN_PASSWORD:-Admin@12345}"
