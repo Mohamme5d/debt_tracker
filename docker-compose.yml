@@ -14,38 +14,22 @@
 
 services:
 
-  # ── PostgreSQL (default) ────────────────────────────────────────────────────
-  postgres:
-    image: postgres:16
+  # ── MySQL 8 ──────────────────────────────────────────────────────────────────
+  mysql:
+    image: mysql:8
     restart: always
     environment:
-      POSTGRES_DB: ijari
-      POSTGRES_USER: ijari
-      POSTGRES_PASSWORD: ijari123
+      MYSQL_DATABASE: ijari
+      MYSQL_USER: ijari
+      MYSQL_PASSWORD: ijari123
+      MYSQL_ROOT_PASSWORD: root123
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - mysqldata:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ijari"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "ijari", "-pijari123"]
       interval: 5s
       timeout: 5s
-      retries: 5
-
-  # ── MySQL 8 (optional — uncomment + disable postgres to switch) ─────────────
-  # mysql:
-  #   image: mysql:8
-  #   restart: always
-  #   environment:
-  #     MYSQL_DATABASE: ijari
-  #     MYSQL_USER: ijari
-  #     MYSQL_PASSWORD: ijari123
-  #     MYSQL_ROOT_PASSWORD: root123
-  #   volumes:
-  #     - mysqldata:/var/lib/mysql
-  #   healthcheck:
-  #     test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "ijari", "-pijari123"]
-  #     interval: 5s
-  #     timeout: 5s
-  #     retries: 10
+      retries: 10
 
   # ── SQL Server 2022 (optional — uncomment + disable postgres to switch) ─────
   # mssql:
@@ -80,15 +64,14 @@ services:
     restart: on-failure
     environment:
       # ── Database provider ──────────────────────────────────────────────────
-      Database__Provider: "${DB_PROVIDER:-PostgreSQL}"
+      Database__Provider: "${DB_PROVIDER:-MySQL}"
 
       # ── Connection strings (only the selected provider is used) ───────────
       ConnectionStrings__PostgreSQL: "Host=postgres;Port=5432;Database=ijari;Username=ijari;Password=ijari123"
-      ConnectionStrings__MySQL: "Server=mysql;Port=3306;Database=ijari;Uid=ijari;Pwd=ijari123;"
+      ConnectionStrings__MySQL: "${MYSQL_CONN:-Server=192.250.229.218;Port=3306;Database=nexisco7_Ijari;Uid=nexisco7_Ijari;Pwd=o6lo!381X;}"
       ConnectionStrings__SqlServer: "Server=mssql,1433;Database=ijari;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;"
 
-      # ── Legacy fallback (kept for backwards compatibility) ────────────────
-      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=ijari;Username=ijari;Password=ijari123"
+      ConnectionStrings__Default: "Server=192.250.229.218;Port=3306;Database=nexisco7_Ijari;Uid=nexisco7_Ijari;Pwd=o6lo!381X;"
 
       Jwt__Secret: "${JWT_SECRET:-super-secret-key-change-in-production-32chars!!}"
       Jwt__Issuer: "ijari-api"
@@ -106,11 +89,6 @@ services:
       ASPNETCORE_ENVIRONMENT: "${ASPNETCORE_ENVIRONMENT:-Production}"
     volumes:
       - api_logs:/app/logs
-    # When switching providers, update this to point at the correct DB service:
-    #   PostgreSQL → postgres / MySQL → mysql / SQL Server → mssql
-    depends_on:
-      postgres:
-        condition: service_healthy
 
   # ── Angular Web App ─────────────────────────────────────────────────────────
   web:
@@ -134,7 +112,5 @@ services:
       - web
 
 volumes:
-  pgdata:
+  mysqldata:
   api_logs:
-  # mysqldata:
-  # mssqldata:

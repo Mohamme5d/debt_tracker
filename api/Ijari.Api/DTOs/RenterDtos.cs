@@ -1,8 +1,6 @@
 namespace Ijari.Api.DTOs;
 
-public record RenterRequest(Guid ApartmentId, string Name, string? Phone, string? Email,
-    decimal MonthlyRent, DateOnly StartDate, bool IsActive, string? Notes);
+public record RenterRequest(string Name, string? Phone, string? Email, string? Notes);
 
-public record RenterResponse(Guid Id, Guid ApartmentId, string ApartmentName, string Name, string? Phone,
-    string? Email, decimal MonthlyRent, DateOnly StartDate, bool IsActive, string? Notes,
+public record RenterResponse(Guid Id, string Name, string? Phone, string? Email, string? Notes,
     string Status, DateTime CreatedAt);

@@ -4,7 +4,7 @@ public enum UserRole { Owner, Employee, SuperAdmin }
 
 public enum RecordStatus { Draft, Approved, Rejected }
 
-public enum EntityType { Renter, RentPayment, Expense, MonthlyDeposit }
+public enum EntityType { Renter, RentContract, RentPayment, Expense, MonthlyDeposit }
 
 public enum ApprovalAction { Create, Update, Delete }
 

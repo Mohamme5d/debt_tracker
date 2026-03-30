@@ -28,24 +28,19 @@ public class RentersController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<RenterResponse>>> GetAll()
     {
-        var query = _context.Renters.Include(r => r.Apartment).AsQueryable();
+        var query = _context.Renters.AsQueryable();
 
         if (!_tenant.IsOwner)
-        {
-            var assigned = _context.ApartmentAssignments
-                .Where(a => a.EmployeeId == _tenant.UserId)
-                .Select(a => a.ApartmentId);
-            query = query.Where(r => assigned.Contains(r.ApartmentId) &&
-                                     (r.Status == RecordStatus.Approved || r.SubmittedById == _tenant.UserId));
-        }
+            query = query.Where(r => r.Status == RecordStatus.Approved || r.SubmittedById == _tenant.UserId);
 
-        return Ok((await query.ToListAsync()).Select(Map));
+        var list = await query.ToListAsync();
+        return Ok(list.Select(Map));
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<RenterResponse>> Get(Guid id)
     {
-        var r = await _context.Renters.Include(x => x.Apartment).FirstOrDefaultAsync(x => x.Id == id);
+        var r = await _context.Renters.FirstOrDefaultAsync(x => x.Id == id);
         if (r == null) return NotFound();
         if (!_tenant.IsOwner && r.Status != RecordStatus.Approved && r.SubmittedById != _tenant.UserId) return Forbid();
         return Ok(Map(r));
@@ -54,24 +49,13 @@ public class RentersController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<RenterResponse>> Create(RenterRequest req)
     {
-        if (!_tenant.IsOwner)
-        {
-            var isAssigned = await _context.ApartmentAssignments
-                .AnyAsync(a => a.EmployeeId == _tenant.UserId && a.ApartmentId == req.ApartmentId);
-            if (!isAssigned) return Forbid();
-        }
-
         var status = _tenant.IsOwner ? RecordStatus.Approved : RecordStatus.Draft;
         var r = new Renter
         {
             TenantId = _tenant.Id,
-            ApartmentId = req.ApartmentId,
             Name = req.Name,
             Phone = req.Phone,
             Email = req.Email,
-            MonthlyRent = req.MonthlyRent,
-            StartDate = req.StartDate,
-            IsActive = req.IsActive,
             Notes = req.Notes,
             Status = status,
             SubmittedById = _tenant.UserId
@@ -82,24 +66,19 @@ public class RentersController : ControllerBase
         if (!_tenant.IsOwner)
             await _approvals.CreateApprovalRequestAsync(EntityType.Renter, r.Id, ApprovalAction.Create, _tenant.UserId);
 
-        var result = await _context.Renters.Include(x => x.Apartment).FirstAsync(x => x.Id == r.Id);
-        return CreatedAtAction(nameof(Get), new { id = r.Id }, Map(result));
+        return CreatedAtAction(nameof(Get), new { id = r.Id }, Map(r));
     }
 
     [HttpPut("{id}")]
     public async Task<ActionResult<RenterResponse>> Update(Guid id, RenterRequest req)
     {
-        var r = await _context.Renters.Include(x => x.Apartment).FirstOrDefaultAsync(x => x.Id == id);
+        var r = await _context.Renters.FirstOrDefaultAsync(x => x.Id == id);
         if (r == null) return NotFound();
         if (!_tenant.IsOwner && r.SubmittedById != _tenant.UserId) return Forbid();
 
-        r.ApartmentId = req.ApartmentId;
         r.Name = req.Name;
         r.Phone = req.Phone;
         r.Email = req.Email;
-        r.MonthlyRent = req.MonthlyRent;
-        r.StartDate = req.StartDate;
-        r.IsActive = req.IsActive;
         r.Notes = req.Notes;
 
         if (!_tenant.IsOwner) r.Status = RecordStatus.Draft;
@@ -123,6 +102,5 @@ public class RentersController : ControllerBase
     }
 
     private static RenterResponse Map(Renter r) =>
-        new(r.Id, r.ApartmentId, r.Apartment?.Name ?? "", r.Name, r.Phone, r.Email,
-            r.MonthlyRent, r.StartDate, r.IsActive, r.Notes, r.Status.ToString(), r.CreatedAt);
+        new(r.Id, r.Name, r.Phone, r.Email, r.Notes, r.Status.ToString(), r.CreatedAt);
 }

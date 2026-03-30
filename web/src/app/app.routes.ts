@@ -30,6 +30,7 @@ export const routes: Routes = [
       { path: 'dashboard', loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent) },
       { path: 'apartments', loadComponent: () => import('./features/apartments/apartments.component').then(m => m.ApartmentsComponent) },
       { path: 'renters', loadComponent: () => import('./features/renters/renters.component').then(m => m.RentersComponent) },
+      { path: 'contracts', loadComponent: () => import('./features/contracts/contracts.component').then(m => m.ContractsComponent) },
       { path: 'payments', loadComponent: () => import('./features/payments/payments.component').then(m => m.PaymentsComponent) },
       { path: 'expenses', loadComponent: () => import('./features/expenses/expenses.component').then(m => m.ExpensesComponent) },
       { path: 'deposits', loadComponent: () => import('./features/deposits/deposits.component').then(m => m.DepositsComponent) },

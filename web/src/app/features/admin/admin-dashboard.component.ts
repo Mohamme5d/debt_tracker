@@ -8,52 +8,60 @@ import { PlatformStats } from '../../core/models';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <h2 class="page-title" style="margin-bottom:24px">Platform Overview</h2>
+    <h2 style="margin:0 0 24px;font-size:1.4rem;font-weight:700;color:#e6edf3">Platform Overview</h2>
 
     @if (loading()) {
-      <div style="text-align:center;padding:60px">
-        <span class="spinner spinner-lg"></span>
-      </div>
+      <div style="text-align:center;padding:40px;color:#8b949e">Loading...</div>
     } @else if (stats()) {
-      <div class="stats-grid">
-        <div class="stat-card" style="border-top:3px solid var(--primary)">
-          <span class="material-icons stat-icon">business</span>
-          <div class="stat-value">{{ stats()!.totalTenants }}</div>
-          <div class="stat-label">Total Tenants</div>
+      <div class="adm-grid">
+        <div class="adm-stat" style="--c:#818cf8">
+          <span class="material-icons" style="color:#818cf8">business</span>
+          <div class="adm-val">{{ stats()!.totalTenants }}</div>
+          <div class="adm-lbl">Total Tenants</div>
         </div>
-        <div class="stat-card" style="border-top:3px solid var(--success)">
-          <span class="material-icons stat-icon text-success">check_circle</span>
-          <div class="stat-value text-success">{{ stats()!.activeTenants }}</div>
-          <div class="stat-label">Active Tenants</div>
+        <div class="adm-stat" style="--c:#34d399">
+          <span class="material-icons" style="color:#34d399">check_circle</span>
+          <div class="adm-val" style="color:#34d399">{{ stats()!.activeTenants }}</div>
+          <div class="adm-lbl">Active Tenants</div>
         </div>
-        <div class="stat-card" style="border-top:3px solid var(--danger)">
-          <span class="material-icons stat-icon text-danger">block</span>
-          <div class="stat-value text-danger">{{ stats()!.inactiveTenants }}</div>
-          <div class="stat-label">Inactive Tenants</div>
+        <div class="adm-stat" style="--c:#f87171">
+          <span class="material-icons" style="color:#f87171">block</span>
+          <div class="adm-val" style="color:#f87171">{{ stats()!.inactiveTenants }}</div>
+          <div class="adm-lbl">Inactive Tenants</div>
         </div>
-        <div class="stat-card" style="border-top:3px solid #3b82f6">
-          <span class="material-icons stat-icon" style="color:#3b82f6">people</span>
-          <div class="stat-value" style="color:#3b82f6">{{ stats()!.totalUsers }}</div>
-          <div class="stat-label">Total Users</div>
+        <div class="adm-stat" style="--c:#60a5fa">
+          <span class="material-icons" style="color:#60a5fa">people</span>
+          <div class="adm-val" style="color:#60a5fa">{{ stats()!.totalUsers }}</div>
+          <div class="adm-lbl">Total Users</div>
         </div>
-        <div class="stat-card" style="border-top:3px solid var(--warning)">
-          <span class="material-icons stat-icon text-warning">apartment</span>
-          <div class="stat-value text-warning">{{ stats()!.totalApartments }}</div>
-          <div class="stat-label">Total Apartments</div>
+        <div class="adm-stat" style="--c:#fb923c">
+          <span class="material-icons" style="color:#fb923c">apartment</span>
+          <div class="adm-val" style="color:#fb923c">{{ stats()!.totalApartments }}</div>
+          <div class="adm-lbl">Total Apartments</div>
         </div>
-        <div class="stat-card" style="border-top:3px solid #14b8a6">
-          <span class="material-icons stat-icon" style="color:#14b8a6">person_pin</span>
-          <div class="stat-value" style="color:#14b8a6">{{ stats()!.totalActiveRenters }}</div>
-          <div class="stat-label">Active Renters</div>
+        <div class="adm-stat" style="--c:#2dd4bf">
+          <span class="material-icons" style="color:#2dd4bf">person_pin</span>
+          <div class="adm-val" style="color:#2dd4bf">{{ stats()!.totalActiveRenters }}</div>
+          <div class="adm-lbl">Active Renters</div>
         </div>
-        <div class="stat-card" style="border-top:3px solid #a855f7">
-          <span class="material-icons stat-icon" style="color:#a855f7">fiber_new</span>
-          <div class="stat-value" style="color:#a855f7">{{ stats()!.newTenantsThisMonth }}</div>
-          <div class="stat-label">New This Month</div>
+        <div class="adm-stat" style="--c:#c084fc">
+          <span class="material-icons" style="color:#c084fc">fiber_new</span>
+          <div class="adm-val" style="color:#c084fc">{{ stats()!.newTenantsThisMonth }}</div>
+          <div class="adm-lbl">New This Month</div>
         </div>
       </div>
     }
-  `
+  `,
+  styles: [`
+    .adm-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:14px; }
+    .adm-stat {
+      background:#161b22; border:1px solid #30363d; border-top:3px solid var(--c,#818cf8);
+      border-radius:10px; padding:18px; text-align:center;
+    }
+    .adm-stat .material-icons { font-size:30px; }
+    .adm-val { font-size:1.8rem; font-weight:800; color:#e6edf3; margin:8px 0 4px; }
+    .adm-lbl { font-size:11px; color:#8b949e; font-weight:600; text-transform:uppercase; letter-spacing:.05em; }
+  `]
 })
 export class AdminDashboardComponent implements OnInit {
   private api = inject(ApiService);

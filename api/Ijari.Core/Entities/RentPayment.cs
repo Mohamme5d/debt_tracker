@@ -4,6 +4,8 @@ namespace Ijari.Core.Entities;
 
 public class RentPayment : TenantEntity
 {
+    public Guid? ContractId { get; set; }
+    public RentContract? Contract { get; set; }
     public Guid? RenterId { get; set; }
     public Renter? Renter { get; set; }
     public Guid ApartmentId { get; set; }

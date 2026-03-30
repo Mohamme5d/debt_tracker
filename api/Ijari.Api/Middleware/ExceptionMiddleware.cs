@@ -7,13 +7,11 @@ public class ExceptionMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionMiddleware> _logger;
-    private readonly IHostEnvironment _env;
 
-    public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger, IHostEnvironment env)
+    public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger)
     {
         _next = next;
         _logger = logger;
-        _env = env;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -24,33 +22,22 @@ public class ExceptionMiddleware
         }
         catch (KeyNotFoundException ex)
         {
-            await WriteError(context, HttpStatusCode.NotFound, ex.Message);
+            context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(JsonSerializer.Serialize(new { message = ex.Message }));
         }
         catch (UnauthorizedAccessException ex)
         {
-            await WriteError(context, HttpStatusCode.Forbidden, ex.Message);
+            context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(JsonSerializer.Serialize(new { message = ex.Message }));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex,
-                "Unhandled exception | {Method} {Path} | User: {User} | IP: {IP}",
-                context.Request.Method,
-                context.Request.Path,
-                context.User?.Identity?.Name ?? "anonymous",
-                context.Connection.RemoteIpAddress?.ToString() ?? "unknown");
-
-            var message = _env.IsDevelopment()
-                ? $"{ex.GetType().Name}: {ex.Message}"
-                : "An internal error occurred. Check server logs for details.";
-
-            await WriteError(context, HttpStatusCode.InternalServerError, message);
+            _logger.LogError(ex, "Unhandled exception");
+            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(JsonSerializer.Serialize(new { message = "An internal error occurred" }));
         }
-    }
-
-    private static Task WriteError(HttpContext context, HttpStatusCode status, string message)
-    {
-        context.Response.StatusCode  = (int)status;
-        context.Response.ContentType = "application/json";
-        return context.Response.WriteAsync(JsonSerializer.Serialize(new { message }));
     }
 }

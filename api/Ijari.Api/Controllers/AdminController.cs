@@ -34,8 +34,8 @@ public class AdminController : ControllerBase
             .Where(u => u.Role != UserRole.SuperAdmin)
             .CountAsync();
         var apartments = await _db.Apartments.IgnoreQueryFilters().CountAsync();
-        var activeRenters = await _db.Renters.IgnoreQueryFilters()
-            .Where(r => r.IsActive && r.Status == RecordStatus.Approved)
+        var activeRenters = await _db.RentContracts.IgnoreQueryFilters()
+            .Where(c => c.IsActive && c.Status == RecordStatus.Approved)
             .CountAsync();
         var newThisMonth = tenants.Count(t => t.CreatedAt >= firstOfMonth);
 
@@ -70,8 +70,8 @@ public class AdminController : ControllerBase
                 .CountAsync(u => u.TenantId == t.Id && u.Role != UserRole.SuperAdmin);
             var aptCount = await _db.Apartments.IgnoreQueryFilters()
                 .CountAsync(a => a.TenantId == t.Id);
-            var renterCount = await _db.Renters.IgnoreQueryFilters()
-                .CountAsync(r => r.TenantId == t.Id && r.IsActive && r.Status == RecordStatus.Approved);
+            var renterCount = await _db.RentContracts.IgnoreQueryFilters()
+                .CountAsync(c => c.TenantId == t.Id && c.IsActive && c.Status == RecordStatus.Approved);
 
             result.Add(new AdminTenantListItemDto(
                 t.Id, t.Name, t.Email, t.Plan, t.IsActive, t.CreatedAt,
@@ -94,8 +94,8 @@ public class AdminController : ControllerBase
             .ToListAsync();
 
         var aptCount = await _db.Apartments.IgnoreQueryFilters().CountAsync(a => a.TenantId == id);
-        var renterCount = await _db.Renters.IgnoreQueryFilters()
-            .CountAsync(r => r.TenantId == id && r.IsActive && r.Status == RecordStatus.Approved);
+        var renterCount = await _db.RentContracts.IgnoreQueryFilters()
+            .CountAsync(c => c.TenantId == id && c.IsActive && c.Status == RecordStatus.Approved);
         var paymentCount = await _db.RentPayments.IgnoreQueryFilters().CountAsync(p => p.TenantId == id);
 
         return new AdminTenantDetailDto(

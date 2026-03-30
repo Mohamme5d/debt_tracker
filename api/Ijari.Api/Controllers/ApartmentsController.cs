@@ -25,15 +25,8 @@ public class ApartmentsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ApartmentResponse>>> GetAll()
     {
-        IQueryable<Apartment> query = _context.Apartments;
-        if (!_tenant.IsOwner)
-        {
-            var assigned = _context.ApartmentAssignments
-                .Where(a => a.EmployeeId == _tenant.UserId)
-                .Select(a => a.ApartmentId);
-            query = query.Where(a => assigned.Contains(a.Id));
-        }
-        return Ok((await query.ToListAsync()).Select(Map));
+        var list = await _context.Apartments.ToListAsync();
+        return Ok(list.Select(Map));
     }
 
     [HttpGet("{id}")]

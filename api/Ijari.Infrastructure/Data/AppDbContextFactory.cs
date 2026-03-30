@@ -14,7 +14,8 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
             .Build();
 
         var opts = new DbContextOptionsBuilder<AppDbContext>();
-        opts.UseNpgsql(config.GetConnectionString("Default"));
+        var cs = config.GetConnectionString("Default")!;
+        opts.UseMySql(cs, ServerVersion.AutoDetect(cs));
         return new AppDbContext(opts.Options);
     }
 }

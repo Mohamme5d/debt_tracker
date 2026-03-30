@@ -28,24 +28,24 @@ public class PaymentsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<RentPaymentResponse>>> GetAll([FromQuery] int? month, [FromQuery] int? year)
     {
-        var query = _context.RentPayments.Include(p => p.Apartment).Include(p => p.Renter).AsQueryable();
+        var query = _context.RentPayments
+            .Include(p => p.Apartment)
+            .Include(p => p.Renter)
+            .Include(p => p.Contract)
+            .AsQueryable();
         if (month.HasValue) query = query.Where(p => p.PaymentMonth == month);
         if (year.HasValue) query = query.Where(p => p.PaymentYear == year);
         if (!_tenant.IsOwner)
-        {
-            var assigned = _context.ApartmentAssignments
-                .Where(a => a.EmployeeId == _tenant.UserId)
-                .Select(a => a.ApartmentId);
-            query = query.Where(p => assigned.Contains(p.ApartmentId) &&
-                                     (p.Status == RecordStatus.Approved || p.SubmittedById == _tenant.UserId));
-        }
+            query = query.Where(p => p.Status == RecordStatus.Approved || p.SubmittedById == _tenant.UserId);
         return Ok((await query.ToListAsync()).Select(Map));
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<RentPaymentResponse>> Get(Guid id)
     {
-        var p = await _context.RentPayments.Include(x => x.Apartment).Include(x => x.Renter).FirstOrDefaultAsync(x => x.Id == id);
+        var p = await _context.RentPayments
+            .Include(x => x.Apartment).Include(x => x.Renter).Include(x => x.Contract)
+            .FirstOrDefaultAsync(x => x.Id == id);
         if (p == null) return NotFound();
         return Ok(Map(p));
     }
@@ -53,24 +53,36 @@ public class PaymentsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<RentPaymentResponse>> Create(RentPaymentRequest req)
     {
-        if (!_tenant.IsOwner)
+        Guid? renterId = null;
+        Guid apartmentId;
+        decimal rentAmount = req.RentAmount;
+
+        if (req.ContractId.HasValue)
         {
-            var isAssigned = await _context.ApartmentAssignments
-                .AnyAsync(a => a.EmployeeId == _tenant.UserId && a.ApartmentId == req.ApartmentId);
-            if (!isAssigned) return Forbid();
+            var contract = await _context.RentContracts.FirstOrDefaultAsync(c => c.Id == req.ContractId.Value);
+            if (contract == null) return BadRequest("Contract not found.");
+            renterId = contract.RenterId;
+            apartmentId = contract.ApartmentId;
+            if (rentAmount == 0) rentAmount = contract.MonthlyRent;
+        }
+        else
+        {
+            if (!req.ApartmentId.HasValue) return BadRequest("ApartmentId required for vacant payments.");
+            apartmentId = req.ApartmentId.Value;
         }
 
-        var outstanding = req.OutstandingBefore + req.RentAmount - req.AmountPaid;
+        var outstanding = req.OutstandingBefore + rentAmount - req.AmountPaid;
         var status = _tenant.IsOwner ? RecordStatus.Approved : RecordStatus.Draft;
 
         var p = new RentPayment
         {
             TenantId = _tenant.Id,
-            RenterId = req.RenterId,
-            ApartmentId = req.ApartmentId,
+            ContractId = req.ContractId,
+            RenterId = renterId,
+            ApartmentId = apartmentId,
             PaymentMonth = req.PaymentMonth,
             PaymentYear = req.PaymentYear,
-            RentAmount = req.RentAmount,
+            RentAmount = rentAmount,
             OutstandingBefore = req.OutstandingBefore,
             AmountPaid = req.AmountPaid,
             OutstandingAfter = outstanding,
@@ -85,7 +97,9 @@ public class PaymentsController : ControllerBase
         if (!_tenant.IsOwner)
             await _approvals.CreateApprovalRequestAsync(EntityType.RentPayment, p.Id, ApprovalAction.Create, _tenant.UserId);
 
-        var result = await _context.RentPayments.Include(x => x.Apartment).Include(x => x.Renter).FirstAsync(x => x.Id == p.Id);
+        var result = await _context.RentPayments
+            .Include(x => x.Apartment).Include(x => x.Renter).Include(x => x.Contract)
+            .FirstAsync(x => x.Id == p.Id);
         return CreatedAtAction(nameof(Get), new { id = p.Id }, Map(result));
     }
 
@@ -94,9 +108,9 @@ public class PaymentsController : ControllerBase
     public async Task<ActionResult<IEnumerable<RentPaymentResponse>>> GenerateMonth(GenerateMonthRequest req)
     {
         var apartments = await _context.Apartments.ToListAsync();
-        var activeRenters = await _context.Renters
-            .Where(r => r.IsActive && r.Status == RecordStatus.Approved)
-            .Include(r => r.Apartment)
+        var activeContracts = await _context.RentContracts
+            .Where(c => c.IsActive && c.Status == RecordStatus.Approved)
+            .Include(c => c.Renter)
             .ToListAsync();
 
         var existing = await _context.RentPayments
@@ -105,19 +119,38 @@ public class PaymentsController : ControllerBase
             .ToListAsync();
 
         var created = new List<RentPayment>();
+        foreach (var contract in activeContracts)
+        {
+            if (existing.Contains(contract.ApartmentId)) continue;
+            var p = new RentPayment
+            {
+                TenantId = _tenant.Id,
+                ContractId = contract.Id,
+                ApartmentId = contract.ApartmentId,
+                RenterId = contract.RenterId,
+                PaymentMonth = req.Month,
+                PaymentYear = req.Year,
+                RentAmount = contract.MonthlyRent,
+                IsVacant = false,
+                Status = RecordStatus.Approved,
+                SubmittedById = _tenant.UserId
+            };
+            _context.RentPayments.Add(p);
+            created.Add(p);
+            existing.Add(contract.ApartmentId);
+        }
+
+        // vacant records for apartments without active contracts
         foreach (var apt in apartments)
         {
             if (existing.Contains(apt.Id)) continue;
-            var renter = activeRenters.FirstOrDefault(r => r.ApartmentId == apt.Id);
             var p = new RentPayment
             {
                 TenantId = _tenant.Id,
                 ApartmentId = apt.Id,
-                RenterId = renter?.Id,
                 PaymentMonth = req.Month,
                 PaymentYear = req.Year,
-                RentAmount = renter?.MonthlyRent ?? 0,
-                IsVacant = renter == null,
+                IsVacant = true,
                 Status = RecordStatus.Approved,
                 SubmittedById = _tenant.UserId
             };
@@ -128,7 +161,8 @@ public class PaymentsController : ControllerBase
         await _context.SaveChangesAsync();
 
         var ids = created.Select(p => p.Id).ToList();
-        var results = await _context.RentPayments.Include(x => x.Apartment).Include(x => x.Renter)
+        var results = await _context.RentPayments
+            .Include(x => x.Apartment).Include(x => x.Renter).Include(x => x.Contract)
             .Where(p => ids.Contains(p.Id)).ToListAsync();
 
         return Ok(results.Select(Map));
@@ -137,7 +171,9 @@ public class PaymentsController : ControllerBase
     [HttpPut("{id}")]
     public async Task<ActionResult<RentPaymentResponse>> Update(Guid id, RentPaymentRequest req)
     {
-        var p = await _context.RentPayments.Include(x => x.Apartment).Include(x => x.Renter).FirstOrDefaultAsync(x => x.Id == id);
+        var p = await _context.RentPayments
+            .Include(x => x.Apartment).Include(x => x.Renter).Include(x => x.Contract)
+            .FirstOrDefaultAsync(x => x.Id == id);
         if (p == null) return NotFound();
         if (!_tenant.IsOwner && p.SubmittedById != _tenant.UserId) return Forbid();
 
@@ -166,7 +202,7 @@ public class PaymentsController : ControllerBase
     }
 
     private static RentPaymentResponse Map(RentPayment p) =>
-        new(p.Id, p.RenterId, p.Renter?.Name, p.ApartmentId, p.Apartment?.Name ?? "",
+        new(p.Id, p.ContractId, p.RenterId, p.Renter?.Name, p.ApartmentId, p.Apartment?.Name ?? "",
             p.PaymentMonth, p.PaymentYear, p.RentAmount, p.OutstandingBefore,
             p.AmountPaid, p.OutstandingAfter, p.IsVacant, p.Notes, p.Status.ToString(), p.CreatedAt);
 }

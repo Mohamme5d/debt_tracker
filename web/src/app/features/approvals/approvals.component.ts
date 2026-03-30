@@ -1,6 +1,7 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { ApiService } from '../../core/services/api.service';
+import { LanguageService } from '../../core/services/language.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ApprovalRequest } from '../../core/models';
 
@@ -10,22 +11,21 @@ import { ApprovalRequest } from '../../core/models';
   imports: [CommonModule, DatePipe],
   template: `
     <div class="page-header">
-      <h2 class="page-title">Approvals</h2>
-      <button class="btn btn-ghost" (click)="showAll = !showAll; load()">
-        <span class="material-icons">{{ showAll ? 'filter_list_off' : 'filter_list' }}</span>
-        {{ showAll ? 'Show Pending' : 'Show All' }}
+      <h2>{{ lang.t('approvals') }}</h2>
+      <button class="btn btn-outline" (click)="showAll = !showAll; load()">
+        {{ showAll ? lang.t('showPending') : lang.t('showAll') }}
       </button>
     </div>
-    <div class="card" style="padding:0;overflow:hidden">
+    <div class="card">
       <table class="data-table">
         <thead>
           <tr>
-            <th>Submitted By</th>
-            <th>Type</th>
-            <th>Action</th>
-            <th>Status</th>
-            <th>Date</th>
-            <th style="width:100px"></th>
+            <th>{{ lang.t('submittedBy') }}</th>
+            <th>{{ lang.t('type') }}</th>
+            <th>{{ lang.t('action') }}</th>
+            <th>{{ lang.t('status') }}</th>
+            <th>{{ lang.t('date') }}</th>
+            <th class="col-actions"></th>
           </tr>
         </thead>
         <tbody>
@@ -35,37 +35,35 @@ import { ApprovalRequest } from '../../core/models';
               <td>{{ r.entityType }}</td>
               <td>{{ r.action }}</td>
               <td>
-                <span class="badge"
-                  [class.badge-success]="r.status === 'Approved'"
-                  [class.badge-danger]="r.status === 'Rejected'"
-                  [class.badge-warning]="r.status === 'Pending'">
-                  {{ r.status }}
+                <span class="badge" [class]="statusClass(r.status)">
+                  {{ lang.t(r.status?.toLowerCase() || 'pending') }}
                 </span>
               </td>
-              <td style="font-size:12px;color:var(--text-secondary)">{{ r.createdAt | date:'short' }}</td>
-              <td>
+              <td>{{ r.createdAt | date:'short' }}</td>
+              <td class="col-actions">
                 @if (r.status === 'Pending') {
-                  <button class="btn-icon success" title="Approve" (click)="approve(r.id)">
+                  <button class="btn-icon btn-icon-primary" (click)="approve(r.id)" [title]="lang.t('approve')">
                     <span class="material-icons">check_circle</span>
                   </button>
-                  <button class="btn-icon danger" title="Reject" (click)="reject(r.id)">
+                  <button class="btn-icon btn-icon-warn" (click)="reject(r.id)" [title]="lang.t('reject')">
                     <span class="material-icons">cancel</span>
                   </button>
                 }
               </td>
             </tr>
           }
-          @if (!requests().length) {
-            <tr><td colspan="6" class="table-empty">No pending approvals.</td></tr>
-          }
         </tbody>
       </table>
+      @if (!requests().length) {
+        <div class="empty-state">{{ lang.t('noPendingApprovals') }}</div>
+      }
     </div>
   `
 })
 export class ApprovalsComponent implements OnInit {
   private api = inject(ApiService);
-  private toast = inject(ToastService);
+  lang = inject(LanguageService);
+  toast = inject(ToastService);
   requests = signal<ApprovalRequest[]>([]);
   showAll = false;
 
@@ -76,17 +74,23 @@ export class ApprovalsComponent implements OnInit {
     this.api.get<ApprovalRequest[]>(path).subscribe(d => this.requests.set(d));
   }
 
+  statusClass(status?: string) {
+    if (status === 'Approved') return 'badge badge-primary';
+    if (status === 'Rejected') return 'badge badge-warn';
+    return 'badge badge-accent';
+  }
+
   approve(id: string) {
     this.api.put(`/approvals/${id}/approve`, {}).subscribe({
-      next: () => { this.toast.success('Approved'); this.load(); },
-      error: e => this.toast.error(e.error?.message || 'Error')
+      next: () => { this.toast.show(this.lang.t('approved')); this.load(); },
+      error: e => this.toast.show(e.error?.message || 'Error', 'error')
     });
   }
 
   reject(id: string) {
     this.api.put(`/approvals/${id}/reject`, {}).subscribe({
-      next: () => { this.toast.info('Rejected'); this.load(); },
-      error: e => this.toast.error(e.error?.message || 'Error')
+      next: () => { this.toast.show(this.lang.t('rejected')); this.load(); },
+      error: e => this.toast.show(e.error?.message || 'Error', 'error')
     });
   }
 }

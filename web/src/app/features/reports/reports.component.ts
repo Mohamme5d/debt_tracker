@@ -1,85 +1,83 @@
-import { Component, signal, inject, computed } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../core/services/api.service';
-import { AuthService } from '../../core/services/auth.service';
+import { LanguageService } from '../../core/services/language.service';
 
 @Component({
   selector: 'app-reports',
   standalone: true,
   imports: [ReactiveFormsModule, CommonModule],
   template: `
-    <h2 class="page-title" style="margin-bottom:24px">Monthly Report</h2>
+    <h2 style="margin:0 0 24px">{{ lang.t('reports') }}</h2>
 
-    <div class="card" style="margin-bottom:24px">
-      <form [formGroup]="form" style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap">
-        <div class="form-group" style="margin-bottom:0">
-          <label class="form-label">Month</label>
-          <input class="form-control" type="number" formControlName="month" min="1" max="12" style="width:100px">
-        </div>
-        <div class="form-group" style="margin-bottom:0">
-          <label class="form-label">Year</label>
-          <input class="form-control" type="number" formControlName="year" min="2000" max="2099" style="width:110px">
-        </div>
-        <button class="btn btn-primary" type="button" (click)="load()">
-          <span class="material-icons">search</span> Load Report
-        </button>
-        @if (isOwner) {
-          <button class="btn btn-ghost" type="button" (click)="loadCommission()">
-            <span class="material-icons">percent</span> Commission
-          </button>
-        }
-      </form>
+    <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:24px">
+      <div class="form-group">
+        <label class="form-label">{{ lang.t('month') }}</label>
+        <input class="form-control" type="number" [formControl]="$any(form.get('month'))" min="1" max="12" style="width:100px">
+      </div>
+      <div class="form-group">
+        <label class="form-label">{{ lang.t('year') }}</label>
+        <input class="form-control" type="number" [formControl]="$any(form.get('year'))" min="2000" max="2099" style="width:110px">
+      </div>
+      <button class="btn btn-primary" (click)="load()">
+        <span class="material-icons">search</span> Load
+      </button>
+      <button class="btn btn-outline" (click)="loadCommission()">
+        Commission
+      </button>
     </div>
 
     @if (report()) {
       <div class="stats-grid" style="margin-bottom:24px">
         <div class="stat-card">
+          <span class="material-icons">payments</span>
           <div class="stat-value">{{ report().totalRentCollected | number:'1.0-0' }}</div>
           <div class="stat-label">Rent Collected</div>
         </div>
         <div class="stat-card">
-          <div class="stat-value text-danger">{{ report().totalOutstanding | number:'1.0-0' }}</div>
-          <div class="stat-label">Outstanding</div>
+          <span class="material-icons" style="color:var(--warn)">warning</span>
+          <div class="stat-value" style="color:var(--warn)">{{ report().totalOutstanding | number:'1.0-0' }}</div>
+          <div class="stat-label">{{ lang.t('outstanding') }}</div>
         </div>
         <div class="stat-card">
+          <span class="material-icons" style="color:var(--accent)">receipt</span>
           <div class="stat-value">{{ report().totalExpenses | number:'1.0-0' }}</div>
-          <div class="stat-label">Expenses</div>
+          <div class="stat-label">{{ lang.t('expenses') }}</div>
         </div>
         <div class="stat-card">
+          <span class="material-icons">savings</span>
           <div class="stat-value">{{ report().totalDeposit | number:'1.0-0' }}</div>
-          <div class="stat-label">Deposit</div>
+          <div class="stat-label">{{ lang.t('deposits') }}</div>
         </div>
         <div class="stat-card">
-          <div class="stat-value" [class.text-success]="report().netBalance >= 0" [class.text-danger]="report().netBalance < 0">
+          <span class="material-icons" [style.color]="report().netBalance < 0 ? 'var(--warn)' : 'var(--accent)'">account_balance</span>
+          <div class="stat-value" [style.color]="report().netBalance < 0 ? 'var(--warn)' : 'var(--accent)'">
             {{ report().netBalance | number:'1.0-0' }}
           </div>
           <div class="stat-label">Net Balance</div>
         </div>
       </div>
 
-      <h3 style="margin-bottom:12px;font-size:1rem">Payments</h3>
-      <div class="card" style="padding:0;overflow:hidden;margin-bottom:24px">
+      <h3 style="margin:0 0 12px;font-weight:700">{{ lang.t('payments') }}</h3>
+      <div class="card">
         <table class="data-table">
           <thead>
             <tr>
-              <th>Apartment</th>
-              <th>Renter</th>
-              <th>Paid</th>
-              <th>Outstanding</th>
+              <th>{{ lang.t('apartment') }}</th>
+              <th>{{ lang.t('renter') }}</th>
+              <th>{{ lang.t('paid') }}</th>
+              <th>{{ lang.t('outstanding') }}</th>
             </tr>
           </thead>
           <tbody>
-            @for (p of report().payments; track p.id) {
+            @for (p of report().payments; track $index) {
               <tr>
                 <td>{{ p.apartmentName }}</td>
                 <td>{{ p.renterName || '—' }}</td>
                 <td>{{ p.amountPaid | number:'1.0-0' }}</td>
-                <td [class.text-danger]="p.outstanding > 0">{{ p.outstanding | number:'1.0-0' }}</td>
+                <td [style.color]="p.outstanding > 0 ? 'var(--warn)' : 'inherit'">{{ p.outstanding | number:'1.0-0' }}</td>
               </tr>
-            }
-            @if (!report().payments?.length) {
-              <tr><td colspan="4" class="table-empty">No payments for this period.</td></tr>
             }
           </tbody>
         </table>
@@ -87,22 +85,21 @@ import { AuthService } from '../../core/services/auth.service';
     }
 
     @if (commission()) {
-      <div class="card mt-24">
-        <h3 style="margin-bottom:16px">Commission — {{ commission().month }}/{{ commission().year }}</h3>
-        <p>Total Collected: <strong>{{ commission().totalRentCollected | number:'1.0-0' }}</strong></p>
-        <p>Rate: <strong>{{ commission().commissionRate }}%</strong></p>
-        <p>Commission Due: <strong>{{ commission().commissionAmount | number:'1.0-2' }}</strong></p>
+      <div class="card" style="margin-top:24px;padding:20px">
+        <h3 style="margin:0 0 14px;font-weight:700">Commission — {{ commission().month }}/{{ commission().year }}</h3>
+        <p style="margin:6px 0">Total Collected: <strong>{{ commission().totalRentCollected | number:'1.0-0' }}</strong></p>
+        <p style="margin:6px 0">Rate: <strong>{{ commission().commissionRate }}%</strong></p>
+        <p style="margin:6px 0">Commission Due: <strong>{{ commission().commissionAmount | number:'1.0-2' }}</strong></p>
       </div>
     }
   `
 })
 export class ReportsComponent {
   private api = inject(ApiService);
-  private auth = inject(AuthService);
+  lang = inject(LanguageService);
   private fb = inject(FormBuilder);
   report = signal<any>(null);
   commission = signal<any>(null);
-  get isOwner() { return this.auth.isOwner; }
 
   form = this.fb.group({
     month: [new Date().getMonth() + 1],

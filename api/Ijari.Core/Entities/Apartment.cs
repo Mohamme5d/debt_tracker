@@ -7,6 +7,5 @@ public class Apartment : TenantEntity
     public string? Description { get; set; }
     public string? Notes { get; set; }
 
-    public ICollection<Renter> Renters { get; set; } = [];
     public ICollection<RentPayment> Payments { get; set; } = [];
 }

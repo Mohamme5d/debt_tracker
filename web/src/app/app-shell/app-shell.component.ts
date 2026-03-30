@@ -4,161 +4,163 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../core/services/auth.service';
 import { NotificationService } from '../core/services/notification.service';
 import { ApiService } from '../core/services/api.service';
-import { ToastContainerComponent } from '../shared/toast-container.component';
+import { LanguageService } from '../core/services/language.service';
+import { ToastService } from '../core/services/toast.service';
 
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [
-    RouterOutlet, RouterLink, RouterLinkActive,
-    CommonModule, ToastContainerComponent
-  ],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule],
   template: `
-    <div class="shell-layout">
-      <!-- Sidebar -->
+    <div [dir]="dir()" class="app-root">
+
+      <!-- ───────────────── SIDEBAR ───────────────────────────── -->
       <aside class="sidebar">
+
         <div class="sidebar-logo">
-          <svg width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20 3L38 18V38H26V27H14V38H2V18L20 3Z" fill="#2563EB"/>
-            <path d="M20 3L38 18H2L20 3Z" fill="#3B82F6"/>
-            <circle cx="20" cy="28" r="3.5" fill="#0D1B2A" stroke="#F1F5F9" stroke-width="1.5"/>
-            <rect x="19" y="30.5" width="2" height="5" rx="1" fill="#F1F5F9"/>
-            <rect x="21" y="33.5" width="2.5" height="1.5" rx="0.75" fill="#F1F5F9"/>
-          </svg>
-          <div>
-            <div class="sidebar-logo-text">Ijari</div>
-            <div class="sidebar-logo-sub">Rent Management</div>
-          </div>
+          <div class="logo-icon"><span class="material-icons">home_work</span></div>
+          <span class="logo-text">Ijari</span>
         </div>
 
         <nav class="sidebar-nav">
-          <a class="nav-link" routerLink="/dashboard" routerLinkActive="active">
+          <p class="sidebar-section-label">{{ lang.t('navigation') }}</p>
+
+          <a class="nav-item" routerLink="/dashboard" routerLinkActive="active-link">
             <span class="material-icons">dashboard</span>
-            Dashboard
+            <span class="nav-label">{{ lang.t('dashboard') }}</span>
           </a>
-          <a class="nav-link" routerLink="/apartments" routerLinkActive="active">
+          <a class="nav-item" routerLink="/apartments" routerLinkActive="active-link">
             <span class="material-icons">apartment</span>
-            Apartments
+            <span class="nav-label">{{ lang.t('apartments') }}</span>
           </a>
-          <a class="nav-link" routerLink="/renters" routerLinkActive="active">
+          <a class="nav-item" routerLink="/renters" routerLinkActive="active-link">
             <span class="material-icons">people</span>
-            Renters
+            <span class="nav-label">{{ lang.t('renters') }}</span>
           </a>
-          <a class="nav-link" routerLink="/payments" routerLinkActive="active">
+          <a class="nav-item" routerLink="/contracts" routerLinkActive="active-link">
+            <span class="material-icons">description</span>
+            <span class="nav-label">{{ lang.t('contracts') }}</span>
+          </a>
+          <a class="nav-item" routerLink="/payments" routerLinkActive="active-link">
             <span class="material-icons">payments</span>
-            Payments
+            <span class="nav-label">{{ lang.t('payments') }}</span>
           </a>
-          <a class="nav-link" routerLink="/expenses" routerLinkActive="active">
+          <a class="nav-item" routerLink="/expenses" routerLinkActive="active-link">
             <span class="material-icons">receipt</span>
-            Expenses
+            <span class="nav-label">{{ lang.t('expenses') }}</span>
           </a>
-          <a class="nav-link" routerLink="/deposits" routerLinkActive="active">
+          <a class="nav-item" routerLink="/deposits" routerLinkActive="active-link">
             <span class="material-icons">savings</span>
-            Deposits
+            <span class="nav-label">{{ lang.t('deposits') }}</span>
           </a>
 
           @if (isOwner()) {
             <div class="nav-divider"></div>
-            <div class="nav-section-label">Owner</div>
-            <a class="nav-link" routerLink="/approvals" routerLinkActive="active">
+            <p class="sidebar-section-label">{{ lang.t('management') }}</p>
+
+            <a class="nav-item" routerLink="/approvals" routerLinkActive="active-link">
               <span class="material-icons">approval</span>
-              Approvals
+              <span class="nav-label">{{ lang.t('approvals') }}</span>
               @if (pendingCount() > 0) {
-                <span class="badge badge-danger" style="margin-left:auto;padding:1px 7px;font-size:10px">
-                  {{ pendingCount() }}
-                </span>
+                <span class="nav-badge">{{ pendingCount() }}</span>
               }
             </a>
-            <a class="nav-link" routerLink="/employees" routerLinkActive="active">
+            <a class="nav-item" routerLink="/employees" routerLinkActive="active-link">
               <span class="material-icons">badge</span>
-              Employees
+              <span class="nav-label">{{ lang.t('employees') }}</span>
             </a>
-            <a class="nav-link" routerLink="/reports" routerLinkActive="active">
+            <a class="nav-item" routerLink="/reports" routerLinkActive="active-link">
               <span class="material-icons">bar_chart</span>
-              Reports
+              <span class="nav-label">{{ lang.t('reports') }}</span>
             </a>
           }
         </nav>
 
         <div class="sidebar-footer">
-          <button class="nav-link" (click)="logout()">
+          <div class="sidebar-avatar">
+            {{ (user()?.name ?? 'U').charAt(0).toUpperCase() }}
+          </div>
+          <div class="sidebar-user-info">
+            <div class="user-name">{{ user()?.name }}</div>
+            <div class="user-role">{{ isOwner() ? lang.t('owner') : lang.t('employee') }}</div>
+          </div>
+          <button class="btn-icon" (click)="logout()" [title]="lang.t('logout')">
             <span class="material-icons">logout</span>
-            Logout
           </button>
         </div>
+
       </aside>
 
-      <!-- Main Area -->
-      <div class="shell-main">
+      <!-- ───────────────── MAIN AREA ─────────────────────────── -->
+      <div class="main-area">
+
         <!-- Topbar -->
         <header class="topbar">
           <span class="topbar-spacer"></span>
 
-          <!-- Notifications -->
-          <div class="dropdown">
-            <button class="btn-icon notif-btn" (click)="notifsOpen.set(!notifsOpen())">
-              <span class="material-icons">notifications</span>
+          <button class="lang-toggle" (click)="lang.toggleLang()">
+            <span class="material-icons">translate</span>
+            {{ lang.lang() === 'en' ? 'AR' : 'EN' }}
+          </button>
+
+          <div class="notif-wrap">
+            <button class="btn-icon" (click)="notifOpen = !notifOpen" [title]="lang.t('notifications')">
+              <span class="material-icons">notifications_none</span>
               @if (notifCount() > 0) {
-                <span class="notif-dot"></span>
+                <span class="notif-badge">{{ notifCount() }}</span>
               }
             </button>
-            @if (notifsOpen()) {
-              <div class="dropdown-menu" style="width:260px">
+            @if (notifOpen) {
+              <div class="dropdown-backdrop" (click)="notifOpen = false"></div>
+              <div class="dropdown-panel">
                 @for (n of notifications(); track n.id) {
-                  <button class="dropdown-item" (click)="markRead(n.id)"
-                    [style.font-weight]="n.isRead ? '400' : '600'">
-                    <span class="material-icons" style="font-size:15px">circle</span>
+                  <button class="dropdown-item" [class.unread]="!n.isRead" (click)="markRead(n.id)">
+                    <span class="material-icons">{{ n.isRead ? 'done' : 'circle' }}</span>
                     {{ n.title }}
                   </button>
                 }
                 @if (!notifications().length) {
-                  <div style="padding:12px 16px;font-size:12px;color:var(--text-secondary)">No notifications</div>
+                  <div class="dropdown-item" style="cursor:default;opacity:0.6">
+                    {{ lang.t('noNotifications') }}
+                  </div>
                 }
-              </div>
-            }
-          </div>
-
-          <!-- User Menu -->
-          <div class="dropdown">
-            <button class="btn btn-ghost btn-sm" (click)="userMenuOpen.set(!userMenuOpen())">
-              <span class="material-icons" style="font-size:18px">account_circle</span>
-              {{ user()?.name }}
-              <span class="material-icons" style="font-size:14px">expand_more</span>
-            </button>
-            @if (userMenuOpen()) {
-              <div class="dropdown-menu">
-                <button class="dropdown-item" (click)="logout()">
-                  <span class="material-icons">logout</span>
-                  Logout
-                </button>
               </div>
             }
           </div>
         </header>
 
-        <!-- Page Content -->
-        <main class="page-content">
+        <!-- Page content -->
+        <div class="main-content">
           <router-outlet />
-        </main>
+        </div>
+
+        <!-- Toasts -->
+        <div class="toast-container">
+          @for (t of toast.toasts(); track t.id) {
+            <div class="toast" [class.toast-error]="t.type === 'error'" [class.toast-success]="t.type === 'success'">
+              {{ t.message }}
+            </div>
+          }
+        </div>
+
       </div>
     </div>
-
-    <app-toast-container />
   `
 })
 export class AppShellComponent implements OnInit {
   private auth = inject(AuthService);
   private notifService = inject(NotificationService);
   private api = inject(ApiService);
+  lang = inject(LanguageService);
+  toast = inject(ToastService);
 
+  dir = computed(() => this.lang.lang() === 'ar' ? 'rtl' : 'ltr');
   user = this.auth.currentUser;
-  isOwner = computed(() => this.auth.currentUser()?.role === 'Owner');
+  isOwner = computed(() => this.auth.isOwner);
   notifications = this.notifService.notifications;
   notifCount = this.notifService.unreadCount;
   pendingCount = signal(0);
-
-  notifsOpen = signal(false);
-  userMenuOpen = signal(false);
+  notifOpen = false;
 
   ngOnInit() {
     this.notifService.load();
@@ -170,8 +172,7 @@ export class AppShellComponent implements OnInit {
   }
 
   markRead(id: string) {
-    this.notifService.markRead(id).subscribe(() => this.notifService.load());
-    this.notifsOpen.set(false);
+    this.notifService.markRead(id).subscribe(() => { this.notifService.load(); this.notifOpen = false; });
   }
 
   logout() { this.auth.logout(); }

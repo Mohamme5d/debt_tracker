@@ -20,31 +20,28 @@ public class AppDbContext : DbContext
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<Apartment> Apartments => Set<Apartment>();
     public DbSet<Renter> Renters => Set<Renter>();
+    public DbSet<RentContract> RentContracts => Set<RentContract>();
     public DbSet<RentPayment> RentPayments => Set<RentPayment>();
     public DbSet<Expense> Expenses => Set<Expense>();
     public DbSet<MonthlyDeposit> MonthlyDeposits => Set<MonthlyDeposit>();
     public DbSet<ApprovalRequest> ApprovalRequests => Set<ApprovalRequest>();
     public DbSet<Notification> Notifications => Set<Notification>();
-    public DbSet<ApartmentAssignment> ApartmentAssignments => Set<ApartmentAssignment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Global tenant filters — reference _currentTenant directly (not via local variable)
-        // so EF Core reads the correct tenant ID at query execution time (per request), not at model build time.
-        modelBuilder.Entity<User>().HasQueryFilter(e => e.TenantId == (_currentTenant != null ? _currentTenant.Id : Guid.Empty));
-        modelBuilder.Entity<Apartment>().HasQueryFilter(e => e.TenantId == (_currentTenant != null ? _currentTenant.Id : Guid.Empty));
-        modelBuilder.Entity<Renter>().HasQueryFilter(e => e.TenantId == (_currentTenant != null ? _currentTenant.Id : Guid.Empty));
-        modelBuilder.Entity<RentPayment>().HasQueryFilter(e => e.TenantId == (_currentTenant != null ? _currentTenant.Id : Guid.Empty));
-        modelBuilder.Entity<Expense>().HasQueryFilter(e => e.TenantId == (_currentTenant != null ? _currentTenant.Id : Guid.Empty));
-        modelBuilder.Entity<MonthlyDeposit>().HasQueryFilter(e => e.TenantId == (_currentTenant != null ? _currentTenant.Id : Guid.Empty));
-        modelBuilder.Entity<ApprovalRequest>().HasQueryFilter(e => e.TenantId == (_currentTenant != null ? _currentTenant.Id : Guid.Empty));
-        modelBuilder.Entity<Notification>().HasQueryFilter(e => e.TenantId == (_currentTenant != null ? _currentTenant.Id : Guid.Empty));
-        modelBuilder.Entity<ApartmentAssignment>().HasQueryFilter(e => e.TenantId == (_currentTenant != null ? _currentTenant.Id : Guid.Empty));
-        modelBuilder.Entity<ApartmentAssignment>().HasIndex(e => new { e.TenantId, e.EmployeeId, e.ApartmentId }).IsUnique();
-        modelBuilder.Entity<ApartmentAssignment>().HasOne(e => e.Employee).WithMany().HasForeignKey(e => e.EmployeeId).OnDelete(DeleteBehavior.Cascade);
-        modelBuilder.Entity<ApartmentAssignment>().HasOne(e => e.Apartment).WithMany().HasForeignKey(e => e.ApartmentId).OnDelete(DeleteBehavior.Cascade);
+        // Global tenant filters — reference _currentTenant field (not a captured local value)
+        // so EF Core re-evaluates against the correct context instance per request
+        modelBuilder.Entity<User>().HasQueryFilter(e => _currentTenant == null || e.TenantId == _currentTenant.Id);
+        modelBuilder.Entity<Apartment>().HasQueryFilter(e => _currentTenant == null || e.TenantId == _currentTenant.Id);
+        modelBuilder.Entity<Renter>().HasQueryFilter(e => _currentTenant == null || e.TenantId == _currentTenant.Id);
+        modelBuilder.Entity<RentContract>().HasQueryFilter(e => _currentTenant == null || e.TenantId == _currentTenant.Id);
+        modelBuilder.Entity<RentPayment>().HasQueryFilter(e => _currentTenant == null || e.TenantId == _currentTenant.Id);
+        modelBuilder.Entity<Expense>().HasQueryFilter(e => _currentTenant == null || e.TenantId == _currentTenant.Id);
+        modelBuilder.Entity<MonthlyDeposit>().HasQueryFilter(e => _currentTenant == null || e.TenantId == _currentTenant.Id);
+        modelBuilder.Entity<ApprovalRequest>().HasQueryFilter(e => _currentTenant == null || e.TenantId == _currentTenant.Id);
+        modelBuilder.Entity<Notification>().HasQueryFilter(e => _currentTenant == null || e.TenantId == _currentTenant.Id);
 
         // Unique constraints
         modelBuilder.Entity<RentPayment>().HasIndex(e => new
@@ -62,6 +59,7 @@ public class AppDbContext : DbContext
         // Enum storage
         modelBuilder.Entity<User>().Property(e => e.Role).HasConversion<string>();
         modelBuilder.Entity<Renter>().Property(e => e.Status).HasConversion<string>();
+        modelBuilder.Entity<RentContract>().Property(e => e.Status).HasConversion<string>();
         modelBuilder.Entity<RentPayment>().Property(e => e.Status).HasConversion<string>();
         modelBuilder.Entity<Expense>().Property(e => e.Status).HasConversion<string>();
         modelBuilder.Entity<MonthlyDeposit>().Property(e => e.Status).HasConversion<string>();
@@ -71,7 +69,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Notification>().Property(e => e.EntityType).HasConversion<string>();
 
         // Decimal precision
-        modelBuilder.Entity<Renter>().Property(e => e.MonthlyRent).HasPrecision(18, 2);
+        modelBuilder.Entity<RentContract>().Property(e => e.MonthlyRent).HasPrecision(18, 2);
         modelBuilder.Entity<RentPayment>().Property(e => e.RentAmount).HasPrecision(18, 2);
         modelBuilder.Entity<RentPayment>().Property(e => e.OutstandingBefore).HasPrecision(18, 2);
         modelBuilder.Entity<RentPayment>().Property(e => e.AmountPaid).HasPrecision(18, 2);
@@ -85,6 +83,21 @@ public class AppDbContext : DbContext
             .OnDelete(DeleteBehavior.Restrict);
         modelBuilder.Entity<Renter>()
             .HasOne(r => r.ApprovedBy).WithMany().HasForeignKey(r => r.ApprovedById)
+            .OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<RentContract>()
+            .HasOne(r => r.Renter).WithMany().HasForeignKey(r => r.RenterId)
+            .OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<RentContract>()
+            .HasOne(r => r.Apartment).WithMany().HasForeignKey(r => r.ApartmentId)
+            .OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<RentContract>()
+            .HasOne(r => r.SubmittedBy).WithMany().HasForeignKey(r => r.SubmittedById)
+            .OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<RentContract>()
+            .HasOne(r => r.ApprovedBy).WithMany().HasForeignKey(r => r.ApprovedById)
+            .OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<RentPayment>()
+            .HasOne(r => r.Contract).WithMany().HasForeignKey(r => r.ContractId)
             .OnDelete(DeleteBehavior.Restrict);
         modelBuilder.Entity<RentPayment>()
             .HasOne(r => r.SubmittedBy).WithMany().HasForeignKey(r => r.SubmittedById)

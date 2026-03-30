@@ -76,42 +76,4 @@ public class EmployeesController : ControllerBase
         await _context.SaveChangesAsync();
         return NoContent();
     }
-
-    // ── Apartment assignments ─────────────────────────────────────────────────
-
-    [HttpGet("{id}/apartments")]
-    public async Task<ActionResult<IEnumerable<object>>> GetAssignedApartments(Guid id)
-    {
-        var assignments = await _context.ApartmentAssignments
-            .Include(a => a.Apartment)
-            .Where(a => a.EmployeeId == id)
-            .Select(a => new { a.ApartmentId, a.Apartment.Name })
-            .ToListAsync();
-        return Ok(assignments);
-    }
-
-    [HttpPut("{id}/apartments")]
-    public async Task<IActionResult> SetAssignedApartments(Guid id, [FromBody] List<Guid> apartmentIds)
-    {
-        var employee = await _context.Users.FirstOrDefaultAsync(u => u.Id == id && u.Role == UserRole.Employee);
-        if (employee == null) return NotFound();
-
-        // Remove existing assignments
-        var existing = await _context.ApartmentAssignments.Where(a => a.EmployeeId == id).ToListAsync();
-        _context.ApartmentAssignments.RemoveRange(existing);
-
-        // Add new assignments
-        foreach (var aptId in apartmentIds.Distinct())
-        {
-            _context.ApartmentAssignments.Add(new ApartmentAssignment
-            {
-                TenantId = _tenant.Id,
-                EmployeeId = id,
-                ApartmentId = aptId
-            });
-        }
-
-        await _context.SaveChangesAsync();
-        return NoContent();
-    }
 }
