@@ -865,6 +865,26 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} records created'**
   String recordsCreated(int count);
+
+  String get allRenters;
+  String get allApartments;
+  String get allStatuses;
+  String get sortBy;
+  String get sortByPeriod;
+  String get sortByRenter;
+  String get sortByApartment;
+  String get sortByAmount;
+  String get sortByStatus;
+  String get sortAscending;
+  String get sortDescending;
+  String get prevPage;
+  String get nextPage;
+  String pageOf(int current, int total);
+  String itemsRange(int from, int to, int total);
+  String get filters;
+  String get clear;
+  String get results;
+  String get perPage;
 }
 
 class _AppLocalizationsDelegate

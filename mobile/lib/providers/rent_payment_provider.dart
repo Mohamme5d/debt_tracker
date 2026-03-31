@@ -17,7 +17,8 @@ class RentPaymentProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      _payments = await _api.getAll(month: month, year: year);
+      final result = await _api.getAll(month: month, year: year, pageSize: 200);
+      _payments = result.items;
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -26,8 +27,29 @@ class RentPaymentProvider extends ChangeNotifier {
     }
   }
 
-  Future<List<RentPayment>> getByMonthYear(int month, int year) =>
-      _api.getAll(month: month, year: year);
+  /// Fetches a paged result with full filter/sort/pagination support.
+  Future<PagedResult<RentPayment>> fetchPaged({
+    int? month,
+    int? year,
+    String? renterId,
+    String? apartmentId,
+    String? status,
+    String sortBy = 'period',
+    String sortDir = 'desc',
+    int page = 1,
+    int pageSize = 15,
+  }) =>
+      _api.getAll(
+        month: month,
+        year: year,
+        renterId: renterId,
+        apartmentId: apartmentId,
+        status: status,
+        sortBy: sortBy,
+        sortDir: sortDir,
+        page: page,
+        pageSize: pageSize,
+      );
 
   /// Returns 'duplicate' if conflict (409), 'ok' on success, error string otherwise
   Future<String> add(RentPayment payment) async {

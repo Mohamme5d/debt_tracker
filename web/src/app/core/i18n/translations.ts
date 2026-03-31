@@ -22,6 +22,9 @@ export type TranslationKey =
   | 'addPayment' | 'editPayment' | 'noPaymentsYet' | 'selectContract'
   | 'month' | 'year' | 'rentAmount' | 'outstandingBefore' | 'amountPaid'
   | 'rent' | 'paid' | 'outstanding' | 'generateThisMonth'
+  | 'allRenters' | 'allApartments' | 'allStatuses' | 'sortBy' | 'filters' | 'clear' | 'results'
+  | 'rowsPerPage' | 'prev' | 'next' | 'sortPeriod' | 'sortRenter'
+  | 'sortApartment' | 'sortAmount' | 'sortStatus' | 'asc' | 'desc'
   // Expenses
   | 'category' | 'amount' | 'noExpensesYet'
   // Deposits
@@ -65,6 +68,10 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     month: 'Month', year: 'Year', rentAmount: 'Rent Amount',
     outstandingBefore: 'Outstanding Before', amountPaid: 'Amount Paid',
     rent: 'Rent', paid: 'Paid', outstanding: 'Outstanding', generateThisMonth: 'Generate This Month',
+    allRenters: 'All Renters', allApartments: 'All Apartments', allStatuses: 'All Statuses',
+    sortBy: 'Sort By', filters: 'Filters', clear: 'Clear', results: 'results', rowsPerPage: 'Per page', prev: 'Prev', next: 'Next',
+    sortPeriod: 'Period', sortRenter: 'Renter', sortApartment: 'Apartment', sortAmount: 'Amount', sortStatus: 'Status',
+    asc: 'Asc', desc: 'Desc',
     category: 'Category', amount: 'Amount', noExpensesYet: 'No expenses yet.',
     monthlyDeposits: 'Monthly Deposits', noDepositsYet: 'No deposits yet.',
     showPending: 'Show Pending', showAll: 'Show All',
@@ -101,6 +108,10 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     month: 'الشهر', year: 'السنة', rentAmount: 'مبلغ الإيجار',
     outstandingBefore: 'المتبقي السابق', amountPaid: 'المبلغ المدفوع',
     rent: 'الإيجار', paid: 'المدفوع', outstanding: 'المتبقي', generateThisMonth: 'توليد هذا الشهر',
+    allRenters: 'كل المستأجرين', allApartments: 'كل الشقق', allStatuses: 'كل الحالات',
+    sortBy: 'ترتيب حسب', filters: 'فلاتر', clear: 'مسح', results: 'نتيجة', rowsPerPage: 'في الصفحة', prev: 'السابق', next: 'التالي',
+    sortPeriod: 'الفترة', sortRenter: 'المستأجر', sortApartment: 'الشقة', sortAmount: 'المبلغ', sortStatus: 'الحالة',
+    asc: 'تصاعدي', desc: 'تنازلي',
     category: 'الفئة', amount: 'المبلغ', noExpensesYet: 'لا توجد مصروفات حتى الآن.',
     monthlyDeposits: 'الودائع الشهرية', noDepositsYet: 'لا توجد ودائع حتى الآن.',
     showPending: 'عرض المعلقة', showAll: 'عرض الكل',

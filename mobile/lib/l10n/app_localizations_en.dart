@@ -401,4 +401,61 @@ class AppLocalizationsEn extends AppLocalizations {
   String recordsCreated(int count) {
     return '$count records created';
   }
+
+  @override
+  String get allRenters => 'All Renters';
+
+  @override
+  String get allApartments => 'All Apartments';
+
+  @override
+  String get allStatuses => 'All Statuses';
+
+  @override
+  String get sortBy => 'Sort By';
+
+  @override
+  String get sortByPeriod => 'Period';
+
+  @override
+  String get sortByRenter => 'Renter';
+
+  @override
+  String get sortByApartment => 'Apartment';
+
+  @override
+  String get sortByAmount => 'Amount';
+
+  @override
+  String get sortByStatus => 'Status';
+
+  @override
+  String get sortAscending => 'Ascending';
+
+  @override
+  String get sortDescending => 'Descending';
+
+  @override
+  String get prevPage => 'Prev';
+
+  @override
+  String get nextPage => 'Next';
+
+  @override
+  String pageOf(int current, int total) => '$current / $total';
+
+  @override
+  String itemsRange(int from, int to, int total) => '$from–$to / $total';
+
+  @override
+  String get filters => 'Filters';
+
+  @override
+  String get clear => 'Clear';
+
+  @override
+  String get results => 'results';
+
+  @override
+  String get perPage => 'Per page';
 }

@@ -26,18 +26,54 @@ public class PaymentsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<RentPaymentResponse>>> GetAll([FromQuery] int? month, [FromQuery] int? year)
+    public async Task<ActionResult<PagedResult<RentPaymentResponse>>> GetAll(
+        [FromQuery] int? month,
+        [FromQuery] int? year,
+        [FromQuery] Guid? renterId,
+        [FromQuery] Guid? apartmentId,
+        [FromQuery] string? status,
+        [FromQuery] string? sortBy,
+        [FromQuery] string? sortDir,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 50)
     {
         var query = _context.RentPayments
             .Include(p => p.Apartment)
             .Include(p => p.Renter)
             .Include(p => p.Contract)
+            .Where(p => p.TenantId == _tenant.Id)
             .AsQueryable();
+
         if (month.HasValue) query = query.Where(p => p.PaymentMonth == month);
-        if (year.HasValue) query = query.Where(p => p.PaymentYear == year);
+        if (year.HasValue)  query = query.Where(p => p.PaymentYear == year);
+        if (renterId.HasValue)    query = query.Where(p => p.RenterId == renterId);
+        if (apartmentId.HasValue) query = query.Where(p => p.ApartmentId == apartmentId);
+        if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<RecordStatus>(status, true, out var parsedStatus))
+            query = query.Where(p => p.Status == parsedStatus);
+
         if (!_tenant.IsOwner)
             query = query.Where(p => p.Status == RecordStatus.Approved || p.SubmittedById == _tenant.UserId);
-        return Ok((await query.ToListAsync()).Select(Map));
+
+        // Sorting
+        bool asc = !string.Equals(sortDir, "desc", StringComparison.OrdinalIgnoreCase);
+        query = sortBy?.ToLower() switch
+        {
+            "rentername"    => asc ? query.OrderBy(p => p.Renter!.Name)      : query.OrderByDescending(p => p.Renter!.Name),
+            "apartmentname" => asc ? query.OrderBy(p => p.Apartment.Name)    : query.OrderByDescending(p => p.Apartment.Name),
+            "amountpaid"    => asc ? query.OrderBy(p => p.AmountPaid)        : query.OrderByDescending(p => p.AmountPaid),
+            "status"        => asc ? query.OrderBy(p => p.Status)            : query.OrderByDescending(p => p.Status),
+            _               => asc
+                                ? query.OrderBy(p => p.PaymentYear).ThenBy(p => p.PaymentMonth)
+                                : query.OrderByDescending(p => p.PaymentYear).ThenByDescending(p => p.PaymentMonth),
+        };
+
+        // Pagination
+        pageSize = Math.Clamp(pageSize, 1, 200);
+        page     = Math.Max(page, 1);
+        var totalCount = await query.CountAsync();
+        var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+        return Ok(new PagedResult<RentPaymentResponse>(items.Select(Map), totalCount, page, pageSize));
     }
 
     [HttpGet("{id}")]

@@ -399,4 +399,61 @@ class AppLocalizationsAr extends AppLocalizations {
   String recordsCreated(int count) {
     return 'تم إنشاء $count سجل';
   }
+
+  @override
+  String get allRenters => 'كل المستأجرين';
+
+  @override
+  String get allApartments => 'كل الشقق';
+
+  @override
+  String get allStatuses => 'كل الحالات';
+
+  @override
+  String get sortBy => 'ترتيب حسب';
+
+  @override
+  String get sortByPeriod => 'الفترة';
+
+  @override
+  String get sortByRenter => 'المستأجر';
+
+  @override
+  String get sortByApartment => 'الشقة';
+
+  @override
+  String get sortByAmount => 'المبلغ';
+
+  @override
+  String get sortByStatus => 'الحالة';
+
+  @override
+  String get sortAscending => 'تصاعدي';
+
+  @override
+  String get sortDescending => 'تنازلي';
+
+  @override
+  String get prevPage => 'السابق';
+
+  @override
+  String get nextPage => 'التالي';
+
+  @override
+  String pageOf(int current, int total) => '$current / $total';
+
+  @override
+  String itemsRange(int from, int to, int total) => '$from–$to / $total';
+
+  @override
+  String get filters => 'فلاتر';
+
+  @override
+  String get clear => 'مسح';
+
+  @override
+  String get results => 'نتيجة';
+
+  @override
+  String get perPage => 'في الصفحة';
 }

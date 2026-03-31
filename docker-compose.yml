@@ -1,15 +1,10 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Ijari — Docker Compose
 #
-# DATABASE PROVIDER — set Database__Provider + the matching service below.
-# Supported values: PostgreSQL | MySQL | SqlServer
+# Default stack: MySQL (local container) + Mailpit + API + Web + Nginx
 #
-# Quick-switch guide:
-#   PostgreSQL (default) → keep as-is
-#   MySQL                → set Database__Provider=MySQL, enable mysql service,
-#                          set ConnectionStrings__MySQL, disable postgres service
-#   SQL Server           → set Database__Provider=SqlServer, enable mssql service,
-#                          set ConnectionStrings__SqlServer, disable postgres service
+# Override the DB connection for an external server:
+#   MYSQL_CONN="Server=host;Port=3306;Database=db;Uid=user;Pwd=pass;" docker compose up -d
 # ─────────────────────────────────────────────────────────────────────────────
 
 services:
@@ -31,22 +26,6 @@ services:
       timeout: 5s
       retries: 10
 
-  # ── SQL Server 2022 (optional — uncomment + disable postgres to switch) ─────
-  # mssql:
-  #   image: mcr.microsoft.com/mssql/server:2022-latest
-  #   restart: always
-  #   environment:
-  #     ACCEPT_EULA: "Y"
-  #     SA_PASSWORD: "YourStrong@Passw0rd"
-  #     MSSQL_PID: "Express"
-  #   volumes:
-  #     - mssqldata:/var/opt/mssql
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P YourStrong@Passw0rd -Q 'SELECT 1' -No"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 10
-
   # ── Mail (dev/staging — swap for real SMTP in production) ──────────────────
   mailpit:
     image: axllent/mailpit
@@ -59,19 +38,19 @@ services:
     build:
       context: ./api
       dockerfile: Dockerfile
-    # on-failure lets Docker restart the API if it exits while the DB is still
-    # starting up. The startup code already retries internally (10× / 3s each).
-    restart: on-failure
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:5000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     environment:
-      # ── Database provider ──────────────────────────────────────────────────
-      Database__Provider: "${DB_PROVIDER:-MySQL}"
-
-      # ── Connection strings (only the selected provider is used) ───────────
-      ConnectionStrings__PostgreSQL: "Host=postgres;Port=5432;Database=ijari;Username=ijari;Password=ijari123"
-      ConnectionStrings__MySQL: "${MYSQL_CONN:-Server=192.250.229.218;Port=3306;Database=nexisco7_Ijari;Uid=nexisco7_Ijari;Pwd=o6lo!381X;}"
-      ConnectionStrings__SqlServer: "Server=mssql,1433;Database=ijari;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;"
-
-      ConnectionStrings__Default: "Server=192.250.229.218;Port=3306;Database=nexisco7_Ijari;Uid=nexisco7_Ijari;Pwd=o6lo!381X;"
+      # External database server (override with MYSQL_CONN env var)
+      ConnectionStrings__Default: "${MYSQL_CONN:-Server=192.250.229.218;Port=3306;Database=nexisco7_Ijari;Uid=nexisco7_Ijari;Pwd=o6lo!381X;}"
 
       Jwt__Secret: "${JWT_SECRET:-super-secret-key-change-in-production-32chars!!}"
       Jwt__Issuer: "ijari-api"
@@ -80,8 +59,6 @@ services:
       Email__SmtpPort: "1025"
       Email__From: "noreply@ijari.app"
       Email__FromName: "Ijari"
-      # Comma-separated list of allowed origins, or * for any.
-      # Override with: Cors__Origins__0=https://app.example.com Cors__Origins__1=https://www.example.com
       Cors__Origins__0: "${CORS_ORIGIN_0:-https://ijari.nexiscore.com}"
       Cors__Origins__1: "${CORS_ORIGIN_1:-http://localhost:4200}"
       Admin__Email: "${ADMIN_EMAIL:-admin@ijari.app}"
@@ -97,7 +74,8 @@ services:
       dockerfile: Dockerfile
     restart: always
     depends_on:
-      - api
+      api:
+        condition: service_healthy
 
   # ── Nginx Reverse Proxy ──────────────────────────────────────────────────────
   nginx:

@@ -144,5 +144,37 @@
     "placeholders": {
       "count": { "type": "int" }
     }
-  }
+  },
+  "allRenters": "All Renters",
+  "allApartments": "All Apartments",
+  "allStatuses": "All Statuses",
+  "sortBy": "Sort By",
+  "sortByPeriod": "Period",
+  "sortByRenter": "Renter",
+  "sortByApartment": "Apartment",
+  "sortByAmount": "Amount",
+  "sortByStatus": "Status",
+  "sortAscending": "Ascending",
+  "sortDescending": "Descending",
+  "prevPage": "Prev",
+  "nextPage": "Next",
+  "pageOf": "{current} / {total}",
+  "@pageOf": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "itemsRange": "{from}–{to} / {total}",
+  "@itemsRange": {
+    "placeholders": {
+      "from": { "type": "int" },
+      "to": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "filters": "Filters",
+  "clear": "Clear",
+  "results": "results",
+  "perPage": "Per page"
 }

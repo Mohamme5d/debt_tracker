@@ -144,5 +144,37 @@
     "placeholders": {
       "count": { "type": "int" }
     }
-  }
+  },
+  "allRenters": "كل المستأجرين",
+  "allApartments": "كل الشقق",
+  "allStatuses": "كل الحالات",
+  "sortBy": "ترتيب حسب",
+  "sortByPeriod": "الفترة",
+  "sortByRenter": "المستأجر",
+  "sortByApartment": "الشقة",
+  "sortByAmount": "المبلغ",
+  "sortByStatus": "الحالة",
+  "sortAscending": "تصاعدي",
+  "sortDescending": "تنازلي",
+  "prevPage": "السابق",
+  "nextPage": "التالي",
+  "pageOf": "{current} / {total}",
+  "@pageOf": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "itemsRange": "{from}–{to} / {total}",
+  "@itemsRange": {
+    "placeholders": {
+      "from": { "type": "int" },
+      "to": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "filters": "فلاتر",
+  "clear": "مسح",
+  "results": "نتيجة",
+  "perPage": "في الصفحة"
 }
