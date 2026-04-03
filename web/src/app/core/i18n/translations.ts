@@ -26,9 +26,9 @@ export type TranslationKey =
   | 'rowsPerPage' | 'prev' | 'next' | 'sortPeriod' | 'sortRenter'
   | 'sortApartment' | 'sortAmount' | 'sortStatus' | 'asc' | 'desc'
   // Expenses
-  | 'category' | 'amount' | 'noExpensesYet'
+  | 'category' | 'amount' | 'noExpensesYet' | 'addExpense' | 'editExpense' | 'expenseDate'
   // Deposits
-  | 'monthlyDeposits' | 'noDepositsYet'
+  | 'monthlyDeposits' | 'noDepositsYet' | 'addDeposit' | 'editDeposit'
   // Approvals
   | 'showPending' | 'showAll' | 'submittedBy' | 'type' | 'action' | 'date'
   | 'approve' | 'reject' | 'noPendingApprovals'
@@ -75,7 +75,9 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     sortPeriod: 'Period', sortRenter: 'Renter', sortApartment: 'Apartment', sortAmount: 'Amount', sortStatus: 'Status',
     asc: 'Asc', desc: 'Desc',
     category: 'Category', amount: 'Amount', noExpensesYet: 'No expenses yet.',
+    addExpense: 'Add Expense', editExpense: 'Edit Expense', expenseDate: 'Expense Date',
     monthlyDeposits: 'Monthly Deposits', noDepositsYet: 'No deposits yet.',
+    addDeposit: 'Add Deposit', editDeposit: 'Edit Deposit',
     showPending: 'Show Pending', showAll: 'Show All',
     submittedBy: 'Submitted By', type: 'Type', action: 'Action', date: 'Date',
     approve: 'Approve', reject: 'Reject', noPendingApprovals: 'No pending approvals.',
@@ -116,7 +118,9 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     sortPeriod: 'الفترة', sortRenter: 'المستأجر', sortApartment: 'الشقة', sortAmount: 'المبلغ', sortStatus: 'الحالة',
     asc: 'تصاعدي', desc: 'تنازلي',
     category: 'الفئة', amount: 'المبلغ', noExpensesYet: 'لا توجد مصروفات حتى الآن.',
+    addExpense: 'إضافة مصروف', editExpense: 'تعديل المصروف', expenseDate: 'تاريخ المصروف',
     monthlyDeposits: 'الودائع الشهرية', noDepositsYet: 'لا توجد ودائع حتى الآن.',
+    addDeposit: 'إضافة وديعة', editDeposit: 'تعديل الوديعة',
     showPending: 'عرض المعلقة', showAll: 'عرض الكل',
     submittedBy: 'مُقدَّم من', type: 'النوع', action: 'الإجراء', date: 'التاريخ',
     approve: 'موافقة', reject: 'رفض', noPendingApprovals: 'لا توجد موافقات معلقة.',
