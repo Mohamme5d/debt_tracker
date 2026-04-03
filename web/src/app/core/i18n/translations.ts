@@ -40,7 +40,9 @@ export type TranslationKey =
   // Login
   | 'signIn' | 'rentManagement' | 'newAccount'
   // Shell labels
-  | 'navigation' | 'management' | 'owner' | 'employee';
+  | 'navigation' | 'management' | 'owner' | 'employee'
+  // Search & pagination
+  | 'search' | 'noResults' | 'pageOf';
 
 type Translations = Record<TranslationKey, string>;
 
@@ -84,6 +86,7 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     unreadNotifications: 'Unread Notifications',
     signIn: 'Sign In', rentManagement: 'Rent Management Platform', newAccount: 'New account? Register here',
     navigation: 'Navigation', management: 'Management', owner: 'Owner', employee: 'Employee',
+    search: 'Search...', noResults: 'No results found.', pageOf: 'of',
   },
   ar: {
     dashboard: 'لوحة التحكم', apartments: 'الشقق', renters: 'المستأجرون',
@@ -124,5 +127,6 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     unreadNotifications: 'إشعارات غير مقروءة',
     signIn: 'تسجيل الدخول', rentManagement: 'منصة إدارة الإيجار', newAccount: 'حساب جديد؟ سجّل هنا',
     navigation: 'التنقل', management: 'الإدارة', owner: 'المالك', employee: 'موظف',
+    search: 'بحث...', noResults: 'لا توجد نتائج.', pageOf: 'من',
   }
 };

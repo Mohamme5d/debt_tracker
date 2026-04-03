@@ -9,9 +9,10 @@ import { DashboardStats } from '../../core/models';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <h2 style="margin:0 0 24px">{{ lang.t('dashboard') }}</h2>
+    <h2 class="page-enter" style="margin:0 0 24px">{{ lang.t('dashboard') }}</h2>
+
     @if (stats()) {
-      <div class="stats-grid">
+      <div class="stats-grid page-enter" style="animation-delay:0.05s">
         <div class="stat-card">
           <span class="material-icons">apartment</span>
           <div class="stat-value">{{ stats()!.totalApartments }}</div>
@@ -51,7 +52,16 @@ import { DashboardStats } from '../../core/models';
         </div>
       </div>
     } @else {
-      <p style="opacity:0.6">{{ lang.t('loading') }}</p>
+      <!-- Skeleton stat cards -->
+      <div class="stats-grid page-enter">
+        @for (s of skeletons; track s) {
+          <div class="stat-card" style="cursor:default">
+            <div class="skeleton" style="width:36px;height:36px;border-radius:50%;margin:0 auto 12px"></div>
+            <div class="skeleton" style="width:60%;height:28px;margin:0 auto 8px;border-radius:6px"></div>
+            <div class="skeleton" style="width:80%;height:11px;margin:0 auto;border-radius:4px"></div>
+          </div>
+        }
+      </div>
     }
   `
 })
@@ -59,6 +69,7 @@ export class DashboardComponent implements OnInit {
   private api = inject(ApiService);
   lang = inject(LanguageService);
   stats = signal<DashboardStats | null>(null);
+  skeletons = [1, 2, 3, 4, 5, 6, 7];
 
   ngOnInit() {
     this.api.get<DashboardStats>('/dashboard').subscribe(s => this.stats.set(s));
