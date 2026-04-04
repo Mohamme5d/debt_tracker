@@ -42,7 +42,13 @@ export type TranslationKey =
   // Shell labels
   | 'navigation' | 'management' | 'owner' | 'employee'
   // Search & pagination
-  | 'search' | 'noResults' | 'pageOf';
+  | 'search' | 'noResults' | 'pageOf'
+  // Reports
+  | 'monthlyReport' | 'renterApartmentReport' | 'allTimeReport'
+  | 'exportExcel' | 'exportPdf' | 'totalPaid' | 'netBalance' | 'rentCollected'
+  | 'filterByApartment' | 'filterByRenter' | 'allApartmentsOption' | 'allRentersOption'
+  | 'noReportData' | 'commission' | 'commissionRate' | 'commissionDue'
+  | 'totalDeposits' | 'byApartment' | 'byExpenseCategory';
 
 type Translations = Record<TranslationKey, string>;
 
@@ -89,6 +95,14 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     signIn: 'Sign In', rentManagement: 'Rent Management Platform', newAccount: 'New account? Register here',
     navigation: 'Navigation', management: 'Management', owner: 'Owner', employee: 'Employee',
     search: 'Search...', noResults: 'No results found.', pageOf: 'of',
+    monthlyReport: 'Monthly Report', renterApartmentReport: 'Renter / Apartment Report',
+    allTimeReport: 'All-Time Report', exportExcel: 'Export Excel', exportPdf: 'Export PDF',
+    totalPaid: 'Total Paid', netBalance: 'Net Balance', rentCollected: 'Rent Collected',
+    filterByApartment: 'Filter by Apartment', filterByRenter: 'Filter by Renter',
+    allApartmentsOption: 'All Apartments', allRentersOption: 'All Renters',
+    noReportData: 'No data. Select filters and load the report.',
+    commission: 'Commission', commissionRate: 'Commission Rate', commissionDue: 'Commission Due',
+    totalDeposits: 'Total Deposits', byApartment: 'By Apartment', byExpenseCategory: 'By Expense Category',
   },
   ar: {
     dashboard: 'لوحة التحكم', apartments: 'الشقق', renters: 'المستأجرون',
@@ -132,5 +146,13 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     signIn: 'تسجيل الدخول', rentManagement: 'منصة إدارة الإيجار', newAccount: 'حساب جديد؟ سجّل هنا',
     navigation: 'التنقل', management: 'الإدارة', owner: 'المالك', employee: 'موظف',
     search: 'بحث...', noResults: 'لا توجد نتائج.', pageOf: 'من',
+    monthlyReport: 'التقرير الشهري', renterApartmentReport: 'تقرير المستأجر / الشقة',
+    allTimeReport: 'التقرير الكلي', exportExcel: 'تصدير Excel', exportPdf: 'تصدير PDF',
+    totalPaid: 'إجمالي المدفوع', netBalance: 'صافي الرصيد', rentCollected: 'الإيجار المحصل',
+    filterByApartment: 'فلتر حسب الشقة', filterByRenter: 'فلتر حسب المستأجر',
+    allApartmentsOption: 'كل الشقق', allRentersOption: 'كل المستأجرين',
+    noReportData: 'لا توجد بيانات. اختر الفلاتر وحمّل التقرير.',
+    commission: 'العمولة', commissionRate: 'نسبة العمولة', commissionDue: 'العمولة المستحقة',
+    totalDeposits: 'إجمالي الودائع', byApartment: 'حسب الشقة', byExpenseCategory: 'حسب فئة المصروف',
   }
 };
