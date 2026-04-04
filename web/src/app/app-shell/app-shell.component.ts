@@ -1,6 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DOCUMENT } from '@angular/common';
 import { AuthService } from '../core/services/auth.service';
 import { NotificationService } from '../core/services/notification.service';
 import { ApiService } from '../core/services/api.service';
@@ -12,7 +12,7 @@ import { ToastService } from '../core/services/toast.service';
   standalone: true,
   imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule],
   template: `
-    <div [dir]="dir()" class="app-root">
+    <div [dir]="dir()" [attr.data-theme]="theme()" class="app-root">
 
       <!-- ───────────────── SIDEBAR ───────────────────────────── -->
       <aside class="sidebar">
@@ -98,6 +98,10 @@ import { ToastService } from '../core/services/toast.service';
         <header class="topbar">
           <span class="topbar-spacer"></span>
 
+          <button class="lang-toggle" (click)="toggleTheme()" [title]="theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'">
+            <span class="material-icons">{{ theme() === 'dark' ? 'light_mode' : 'dark_mode' }}</span>
+          </button>
+
           <button class="lang-toggle" (click)="lang.toggleLang()">
             <span class="material-icons">translate</span>
             {{ lang.lang() === 'en' ? 'AR' : 'EN' }}
@@ -151,6 +155,7 @@ export class AppShellComponent implements OnInit {
   private auth = inject(AuthService);
   private notifService = inject(NotificationService);
   private api = inject(ApiService);
+  private doc = inject(DOCUMENT);
   lang = inject(LanguageService);
   toast = inject(ToastService);
 
@@ -162,7 +167,19 @@ export class AppShellComponent implements OnInit {
   pendingCount = signal(0);
   notifOpen = false;
 
+  theme = signal<'dark' | 'light'>(
+    (localStorage.getItem('theme') as 'dark' | 'light') ?? 'dark'
+  );
+
+  toggleTheme() {
+    const next = this.theme() === 'dark' ? 'light' : 'dark';
+    this.theme.set(next);
+    localStorage.setItem('theme', next);
+    this.doc.documentElement.setAttribute('data-theme', next);
+  }
+
   ngOnInit() {
+    this.doc.documentElement.setAttribute('data-theme', this.theme());
     this.notifService.load();
     if (this.isOwner()) {
       this.api.get<any>('/dashboard').subscribe(stats => {

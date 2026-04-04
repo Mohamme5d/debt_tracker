@@ -150,51 +150,66 @@ interface PagedResult<T> { items: T[]; totalCount: number; page: number; pageSiz
       </div>
 
       <!-- Table -->
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>{{ lang.t('apartment') }}</th>
-            <th>{{ lang.t('renter') }}</th>
-            <th>{{ lang.t('period') }}</th>
-            <th>{{ lang.t('rent') }}</th>
-            <th>{{ lang.t('paid') }}</th>
-            <th>{{ lang.t('outstanding') }}</th>
-            <th>{{ lang.t('status') }}</th>
-            <th class="col-actions"></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (p of payments(); track p.id) {
+      @if (loading()) {
+        @for (s of skeletons; track s) {
+          <div class="skeleton-row">
+            <div class="skeleton skeleton-cell" style="width:18%;"></div>
+            <div class="skeleton skeleton-cell" style="width:16%;"></div>
+            <div class="skeleton skeleton-cell" style="width:10%;"></div>
+            <div class="skeleton skeleton-cell" style="width:10%;"></div>
+            <div class="skeleton skeleton-cell" style="width:10%;"></div>
+            <div class="skeleton skeleton-cell" style="width:10%;"></div>
+            <div class="skeleton skeleton-cell" style="width:12%;border-radius:999px"></div>
+            <div class="skeleton skeleton-cell" style="width:6%;margin-inline-start:auto"></div>
+          </div>
+        }
+      } @else {
+        <table class="data-table">
+          <thead>
             <tr>
-              <td>{{ p.apartmentName }}</td>
-              <td>{{ p.renterName || '—' }}</td>
-              <td>{{ p.paymentMonth }}/{{ p.paymentYear }}</td>
-              <td>{{ p.rentAmount | number:'1.0-0' }}</td>
-              <td>{{ p.amountPaid | number:'1.0-0' }}</td>
-              <td [style.color]="p.outstandingAfter > 0 ? 'var(--warn)' : 'inherit'">
-                {{ p.outstandingAfter | number:'1.0-0' }}
-              </td>
-              <td>
-                <span class="badge" [class]="statusClass(p.status)">
-                  {{ lang.t(p.status?.toLowerCase() || 'pending') }}
-                </span>
-              </td>
-              <td class="col-actions">
-                <button class="btn-icon" (click)="openModal(p)" [title]="lang.t('edit')">
-                  <span class="material-icons">edit</span>
-                </button>
-                @if (isOwner()) {
-                  <button class="btn-icon btn-icon-warn" (click)="delete(p.id)" [title]="lang.t('delete')">
-                    <span class="material-icons">delete</span>
-                  </button>
-                }
-              </td>
+              <th>{{ lang.t('apartment') }}</th>
+              <th>{{ lang.t('renter') }}</th>
+              <th>{{ lang.t('period') }}</th>
+              <th>{{ lang.t('rent') }}</th>
+              <th>{{ lang.t('paid') }}</th>
+              <th>{{ lang.t('outstanding') }}</th>
+              <th>{{ lang.t('status') }}</th>
+              <th class="col-actions"></th>
             </tr>
-          }
-        </tbody>
-      </table>
-      @if (!totalCount) {
-        <div class="empty-state">{{ lang.t('noPaymentsYet') }}</div>
+          </thead>
+          <tbody>
+            @for (p of payments(); track p.id) {
+              <tr>
+                <td>{{ p.apartmentName }}</td>
+                <td>{{ p.renterName || '—' }}</td>
+                <td>{{ p.paymentMonth }}/{{ p.paymentYear }}</td>
+                <td>{{ p.rentAmount | number:'1.0-0' }}</td>
+                <td>{{ p.amountPaid | number:'1.0-0' }}</td>
+                <td [style.color]="p.outstandingAfter > 0 ? 'var(--warn)' : 'inherit'">
+                  {{ p.outstandingAfter | number:'1.0-0' }}
+                </td>
+                <td>
+                  <span class="badge" [class]="statusClass(p.status)">
+                    {{ lang.t(p.status?.toLowerCase() || 'pending') }}
+                  </span>
+                </td>
+                <td class="col-actions">
+                  <button class="btn-icon" (click)="openModal(p)" [title]="lang.t('edit')">
+                    <span class="material-icons">edit</span>
+                  </button>
+                  @if (isOwner()) {
+                    <button class="btn-icon btn-icon-warn" (click)="delete(p.id)" [title]="lang.t('delete')">
+                      <span class="material-icons">delete</span>
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        @if (!totalCount) {
+          <div class="empty-state">{{ lang.t('noPaymentsYet') }}</div>
+        }
       }
 
       <!-- ── Modern Pagination ── -->
@@ -559,6 +574,8 @@ export class PaymentsComponent implements OnInit {
   isOwner   = signal(this.auth.isOwner);
   showModal = signal(false);
   editItem  = signal<RentPayment | null>(null);
+  loading   = signal(true);
+  skeletons = [1, 2, 3, 4, 5, 6];
 
   // Filter panel
   filtersOpen = true;
@@ -628,10 +645,15 @@ export class PaymentsComponent implements OnInit {
   }
 
   load() {
-    this.api.get<PagedResult<RentPayment>>('/payments', this.buildParams()).subscribe(result => {
-      this.payments.set(result.items);
-      this.totalCount    = result.totalCount;
-      this.totalPagesVal = Math.max(1, Math.ceil(result.totalCount / this.pageSizeVal));
+    this.loading.set(true);
+    this.api.get<PagedResult<RentPayment>>('/payments', this.buildParams()).subscribe({
+      next: result => {
+        this.payments.set(result.items);
+        this.totalCount    = result.totalCount;
+        this.totalPagesVal = Math.max(1, Math.ceil(result.totalCount / this.pageSizeVal));
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
     });
   }
 
