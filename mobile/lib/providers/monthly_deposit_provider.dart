@@ -17,7 +17,12 @@ class MonthlyDepositProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      _deposits = await _api.getAll();
+      final list = await _api.getAll();
+      list.sort((a, b) {
+        final cmp = b.depositYear.compareTo(a.depositYear);
+        return cmp != 0 ? cmp : b.depositMonth.compareTo(a.depositMonth);
+      });
+      _deposits = list;
     } catch (e) {
       _error = e.toString();
     } finally {

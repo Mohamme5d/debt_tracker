@@ -3,35 +3,37 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
 import { AuthResponse, UserDto } from '../models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   currentUser = signal<UserDto | null>(JSON.parse(localStorage.getItem('ijari_user') || 'null'));
+  private readonly base = environment.apiUrl;
 
   constructor(private http: HttpClient, private router: Router) {}
 
   login(email: string, password: string) {
-    return this.http.post<AuthResponse>('/api/auth/login', { email, password }).pipe(
+    return this.http.post<AuthResponse>(`${this.base}/auth/login`, { email, password }).pipe(
       tap(res => this.saveSession(res))
     );
   }
 
   register(data: { tenantName: string; name: string; email: string; password: string; phone?: string }) {
-    return this.http.post<AuthResponse>('/api/auth/register', data).pipe(
+    return this.http.post<AuthResponse>(`${this.base}/auth/register`, data).pipe(
       tap(res => this.saveSession(res))
     );
   }
 
   refresh() {
     const rt = localStorage.getItem('ijari_refresh');
-    return this.http.post<AuthResponse>('/api/auth/refresh', { refreshToken: rt }).pipe(
+    return this.http.post<AuthResponse>(`${this.base}/auth/refresh`, { refreshToken: rt }).pipe(
       tap(res => this.saveSession(res))
     );
   }
 
   logout() {
     const rt = localStorage.getItem('ijari_refresh');
-    this.http.post('/api/auth/logout', { refreshToken: rt }).subscribe();
+    this.http.post(`${this.base}/auth/logout`, { refreshToken: rt }).subscribe();
     localStorage.removeItem('ijari_token');
     localStorage.removeItem('ijari_refresh');
     localStorage.removeItem('ijari_user');

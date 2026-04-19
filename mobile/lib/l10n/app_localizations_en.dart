@@ -442,10 +442,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nextPage => 'Next';
 
   @override
-  String pageOf(int current, int total) => '$current / $total';
+  String pageOf(int current, int total) {
+    return '$current / $total';
+  }
 
   @override
-  String itemsRange(int from, int to, int total) => '$from–$to / $total';
+  String itemsRange(int from, int to, int total) {
+    return '$from–$to / $total';
+  }
 
   @override
   String get filters => 'Filters';

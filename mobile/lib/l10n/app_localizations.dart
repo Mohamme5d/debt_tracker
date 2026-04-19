@@ -866,24 +866,118 @@ abstract class AppLocalizations {
   /// **'{count} records created'**
   String recordsCreated(int count);
 
+  /// No description provided for @allRenters.
+  ///
+  /// In en, this message translates to:
+  /// **'All Renters'**
   String get allRenters;
+
+  /// No description provided for @allApartments.
+  ///
+  /// In en, this message translates to:
+  /// **'All Apartments'**
   String get allApartments;
+
+  /// No description provided for @allStatuses.
+  ///
+  /// In en, this message translates to:
+  /// **'All Statuses'**
   String get allStatuses;
+
+  /// No description provided for @sortBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort By'**
   String get sortBy;
+
+  /// No description provided for @sortByPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Period'**
   String get sortByPeriod;
+
+  /// No description provided for @sortByRenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Renter'**
   String get sortByRenter;
+
+  /// No description provided for @sortByApartment.
+  ///
+  /// In en, this message translates to:
+  /// **'Apartment'**
   String get sortByApartment;
+
+  /// No description provided for @sortByAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
   String get sortByAmount;
+
+  /// No description provided for @sortByStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
   String get sortByStatus;
+
+  /// No description provided for @sortAscending.
+  ///
+  /// In en, this message translates to:
+  /// **'Ascending'**
   String get sortAscending;
+
+  /// No description provided for @sortDescending.
+  ///
+  /// In en, this message translates to:
+  /// **'Descending'**
   String get sortDescending;
+
+  /// No description provided for @prevPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Prev'**
   String get prevPage;
+
+  /// No description provided for @nextPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
   String get nextPage;
+
+  /// No description provided for @pageOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} / {total}'**
   String pageOf(int current, int total);
+
+  /// No description provided for @itemsRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{from}–{to} / {total}'**
   String itemsRange(int from, int to, int total);
+
+  /// No description provided for @filters.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
   String get filters;
+
+  /// No description provided for @clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
   String get clear;
+
+  /// No description provided for @results.
+  ///
+  /// In en, this message translates to:
+  /// **'results'**
   String get results;
+
+  /// No description provided for @perPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Per page'**
   String get perPage;
 }
 

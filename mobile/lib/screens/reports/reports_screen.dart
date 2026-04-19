@@ -157,18 +157,20 @@ class _ReportsScreenState extends State<ReportsScreen> {
               ? allSummaries
               : allSummaries.where((s) => s['payment_year'] == _excelYear).toList();
 
+          // Fetch all expenses once and group by month to avoid per-month API calls
+          final expenseTotals = await expenseProvider.fetchAllExpenseTotals();
+
           final monthDataList = <MonthExcelData>[];
           for (final s in months) {
             final mo = s['payment_month'] as int;
             final yr = s['payment_year'] as int;
             final payments = await paymentProvider.getByMonthYear(mo, yr);
-            final expenses = await expenseProvider.getTotalByMonthYear(mo, yr);
             final deposit = await depositProvider.getByMonthYear(mo, yr);
             monthDataList.add(MonthExcelData(
               month: mo,
               year: yr,
               payments: payments,
-              totalExpenses: expenses,
+              totalExpenses: expenseTotals['$yr-$mo'] ?? 0.0,
               depositedAmount: deposit?.amount ?? 0.0,
             ));
           }

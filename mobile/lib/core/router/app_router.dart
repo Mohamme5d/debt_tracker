@@ -25,42 +25,42 @@ import '../../screens/reports/reports_screen.dart';
 import '../../screens/reports/pdf_preview_screen.dart';
 import '../../screens/about/about_screen.dart';
 
-final _rootNavigatorKey = GlobalKey<NavigatorState>();
+final rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
 class AppRouter {
   static final router = GoRouter(
-    navigatorKey: _rootNavigatorKey,
+    navigatorKey: rootNavigatorKey,
     initialLocation: '/splash',
     routes: [
       GoRoute(
         path: '/splash',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const SplashScreen(),
       ),
       GoRoute(
         path: '/login',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const LoginScreen(),
       ),
       GoRoute(
         path: '/register',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const RegisterScreen(),
       ),
       GoRoute(
         path: '/lock',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const PasscodeLockScreen(isAppLock: true),
       ),
       GoRoute(
         path: '/settings/security',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const SecuritySettingsScreen(),
       ),
       GoRoute(
         path: '/pdf-preview',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>;
           return PdfPreviewScreen(
@@ -83,12 +83,12 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: 'new',
-                parentNavigatorKey: _rootNavigatorKey,
+                parentNavigatorKey: rootNavigatorKey,
                 builder: (context, state) => const ApartmentFormScreen(),
               ),
               GoRoute(
                 path: 'edit/:id',
-                parentNavigatorKey: _rootNavigatorKey,
+                parentNavigatorKey: rootNavigatorKey,
                 builder: (context, state) => ApartmentFormScreen(
                   apartmentId: state.pathParameters['id'],
                 ),
@@ -101,12 +101,12 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: 'new',
-                parentNavigatorKey: _rootNavigatorKey,
+                parentNavigatorKey: rootNavigatorKey,
                 builder: (context, state) => const RenterFormScreen(),
               ),
               GoRoute(
                 path: 'edit/:id',
-                parentNavigatorKey: _rootNavigatorKey,
+                parentNavigatorKey: rootNavigatorKey,
                 builder: (context, state) => RenterFormScreen(
                   renterId: state.pathParameters['id'],
                 ),
@@ -119,12 +119,12 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: 'new',
-                parentNavigatorKey: _rootNavigatorKey,
+                parentNavigatorKey: rootNavigatorKey,
                 builder: (context, state) => const RentContractFormScreen(),
               ),
               GoRoute(
                 path: 'edit/:id',
-                parentNavigatorKey: _rootNavigatorKey,
+                parentNavigatorKey: rootNavigatorKey,
                 builder: (context, state) => RentContractFormScreen(
                   contractId: state.pathParameters['id'],
                 ),
@@ -137,12 +137,12 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: 'new',
-                parentNavigatorKey: _rootNavigatorKey,
+                parentNavigatorKey: rootNavigatorKey,
                 builder: (context, state) => const RentPaymentFormScreen(),
               ),
               GoRoute(
                 path: 'edit/:id',
-                parentNavigatorKey: _rootNavigatorKey,
+                parentNavigatorKey: rootNavigatorKey,
                 builder: (context, state) => RentPaymentFormScreen(
                   paymentId: state.pathParameters['id'],
                 ),
@@ -155,12 +155,12 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: 'new',
-                parentNavigatorKey: _rootNavigatorKey,
+                parentNavigatorKey: rootNavigatorKey,
                 builder: (context, state) => const ExpenseFormScreen(),
               ),
               GoRoute(
                 path: 'edit/:id',
-                parentNavigatorKey: _rootNavigatorKey,
+                parentNavigatorKey: rootNavigatorKey,
                 builder: (context, state) => ExpenseFormScreen(
                   expenseId: state.pathParameters['id'],
                 ),
@@ -173,12 +173,12 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: 'new',
-                parentNavigatorKey: _rootNavigatorKey,
+                parentNavigatorKey: rootNavigatorKey,
                 builder: (context, state) => const DepositFormScreen(),
               ),
               GoRoute(
                 path: 'edit/:id',
-                parentNavigatorKey: _rootNavigatorKey,
+                parentNavigatorKey: rootNavigatorKey,
                 builder: (context, state) => DepositFormScreen(
                   depositId: state.pathParameters['id'],
                 ),

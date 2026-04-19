@@ -103,39 +103,42 @@ class RentPaymentProvider extends ChangeNotifier {
     return years;
   }
 
+  Future<List<RentPayment>> getByMonthYear(int month, int year) async {
+    return _fetchAll(month: month, year: year);
+  }
+
   Future<List<RentPayment>> getByRenter(String renterId) async {
-    final all = await _api.getAll();
-    return all.where((p) => p.renterId == renterId).toList();
+    return _fetchAll(renterId: renterId);
   }
 
   Future<List<RentPayment>> getByApartment(String apartmentId) async {
-    final all = await _api.getAll();
-    return all.where((p) => p.apartmentId == apartmentId).toList();
+    return _fetchAll(apartmentId: apartmentId);
   }
 
   Future<List<Map<String, dynamic>>> getAllMonthlySummaries() async {
-    final all = await _api.getAll();
-    final seen = <String>{};
-    final result = <Map<String, dynamic>>[];
+    final all = await _fetchAll();
+    final totals = <String, double>{};
+    final order = <String>[];
     for (final p in all) {
-      final key = '${p.paymentYear}-${p.paymentMonth}';
-      if (seen.add(key)) {
-        result.add({'payment_month': p.paymentMonth, 'payment_year': p.paymentYear});
-      }
+      final key = '${p.paymentYear}-${p.paymentMonth.toString().padLeft(2, '0')}';
+      totals[key] = (totals[key] ?? 0.0) + p.amountPaid;
+      if (!order.contains(key)) order.add(key);
     }
-    result.sort((a, b) {
-      final aKey = a['payment_year'] * 100 + a['payment_month'] as int;
-      final bKey = b['payment_year'] * 100 + b['payment_month'] as int;
-      return aKey.compareTo(bKey);
-    });
-    return result;
+    order.sort();
+    return order.map((key) {
+      final parts = key.split('-');
+      return {
+        'payment_year': int.parse(parts[0]),
+        'payment_month': int.parse(parts[1]),
+        'total_collected': totals[key] ?? 0.0,
+      };
+    }).toList();
   }
 
   Future<double> getPreviousOutstandingByApartment(String apartmentId, int month, int year) async {
-    final all = await _api.getAll();
+    final all = await _fetchAll(apartmentId: apartmentId);
     final prev = all.where((p) =>
-      p.apartmentId == apartmentId &&
-      (p.paymentYear < year || (p.paymentYear == year && p.paymentMonth < month))
+      p.paymentYear < year || (p.paymentYear == year && p.paymentMonth < month)
     ).toList();
     if (prev.isEmpty) return 0.0;
     prev.sort((a, b) {
@@ -144,5 +147,29 @@ class RentPaymentProvider extends ChangeNotifier {
       return bk.compareTo(ak);
     });
     return prev.first.outstandingAfter;
+  }
+
+  /// Fetches all pages for the given filters, returning a flat list.
+  Future<List<RentPayment>> _fetchAll({
+    int? month,
+    int? year,
+    String? renterId,
+    String? apartmentId,
+  }) async {
+    const batchSize = 200;
+    final first = await _api.getAll(
+      month: month, year: year, renterId: renterId, apartmentId: apartmentId,
+      pageSize: batchSize, page: 1, sortBy: 'period', sortDir: 'asc',
+    );
+    final all = List<RentPayment>.from(first.items);
+    final totalPages = (first.totalCount / batchSize).ceil();
+    for (int p = 2; p <= totalPages; p++) {
+      final next = await _api.getAll(
+        month: month, year: year, renterId: renterId, apartmentId: apartmentId,
+        pageSize: batchSize, page: p, sortBy: 'period', sortDir: 'asc',
+      );
+      all.addAll(next.items);
+    }
+    return all;
   }
 }

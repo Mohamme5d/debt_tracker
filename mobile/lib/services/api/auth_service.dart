@@ -13,6 +13,7 @@ class AuthService {
       'password': password,
     });
     await _saveSession(resp.data);
+    await _client.saveCredentials(email, password);
     return resp.data['user'] as Map<String, dynamic>;
   }
 
@@ -43,6 +44,7 @@ class AuthService {
       }
     } catch (_) {}
     await _client.clearTokens();
+    await _client.saveCredentials('', ''); // wipe saved credentials
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_userKey);
     await prefs.remove('passcode_hash');
